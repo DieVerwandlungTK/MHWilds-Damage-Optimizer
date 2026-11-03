@@ -27,3 +27,17 @@ uv run --no-project --python 3.12 python -m mhwilds_optimizer.data_download \
 MHDB Wilds Data のライセンスは [GPL-3.0](https://github.com/LartTyler/mhdb-wilds-data/blob/c50a1eb892f4a1ad9bb35c147801658804be2cc2/LICENSE) です。また、取得されるJSONにはゲーム由来の名称や説明文など、別の権利が存在し得る内容が含まれます。
 
 このリポジトリからraw JSONを再配布しないため、`data/raw/` はGit管理外です。ダウンロードしたデータとローカルmanifestをコミットしないでください。
+
+## データの正規化
+
+rawデータ取得後、次のコマンドで最適化処理向けのデータを生成します。
+
+```bash
+uv run --no-project --python 3.12 python -m mhwilds_optimizer.data_normalization \
+  --input data/raw \
+  --output data/normalized
+```
+
+出力先は `data/normalized/mhdb/<commit>/` です。固定コミットでは、スキル179件、防具714件、装飾品361件、通常護石183件を生成し、ランダム護石の親レコード4件を通常護石から除外してレポートします。
+
+再実行時はraw manifestと全正規化ファイルのSHA-256を検証し、正常な既存データを再利用します。正規化データにも日英名称が含まれるため、`data/normalized/` もGit管理外です。フィールド仕様は [`docs/data-schema.md`](docs/data-schema.md) を参照してください。

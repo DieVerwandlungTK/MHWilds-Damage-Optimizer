@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import tempfile
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -183,3 +184,28 @@ def normalize_mhdb_data(
         staging.rename(target)
     verify_normalized_data(target, raw_manifest_sha256=raw_manifest_hash)
     return target
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    """Run the MHDB normalization command."""
+    parser = argparse.ArgumentParser(description="Normalize pinned MHDB source data")
+    parser.add_argument(
+        "--input",
+        type=Path,
+        default=Path("data/raw"),
+        help="raw data root (default: data/raw)",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("data/normalized"),
+        help="normalized data root (default: data/normalized)",
+    )
+    arguments = parser.parse_args(argv)
+    output_dir = normalize_mhdb_data(arguments.input, arguments.output)
+    print(output_dir)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

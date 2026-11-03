@@ -1,11 +1,14 @@
 import hashlib
+import io
 import json
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from datetime import datetime, timezone
 from pathlib import Path
 
 from mhwilds_optimizer.data_download import MHDB_COMMIT, download_mhdb_data
+import mhwilds_optimizer.data_normalization as data_normalization
 from mhwilds_optimizer.data_normalization import (
     NormalizationVerificationError,
     normalize_mhdb_data,
@@ -447,6 +450,19 @@ class DatasetNormalizationTests(unittest.TestCase):
 
             with self.assertRaisesRegex(NormalizationVerificationError, "armor.json"):
                 normalize_mhdb_data(root / "raw", root / "normalized")
+
+    def test_cli_help_documents_input_and_output(self) -> None:
+        output = io.StringIO()
+
+        with redirect_stdout(output), self.assertRaises(SystemExit) as exit_context:
+            data_normalization.main(["--help"])
+
+        self.assertEqual(exit_context.exception.code, 0)
+        help_text = output.getvalue()
+        self.assertIn("--input", help_text)
+        self.assertIn("data/raw", help_text)
+        self.assertIn("--output", help_text)
+        self.assertIn("data/normalized", help_text)
 
 
 if __name__ == "__main__":
