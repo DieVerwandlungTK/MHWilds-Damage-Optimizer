@@ -94,6 +94,25 @@ class DamageModelTests(unittest.TestCase):
                 with self.assertRaisesRegex(DamageInputError, field):
                     replace(valid_target(), **{field: value})
 
+    def test_rejects_non_finite_decimal_inputs(self) -> None:
+        cases = (
+            ("raw", lambda: replace(valid_stats(), raw=Decimal("Infinity"))),
+            (
+                "affinity_percent",
+                lambda: replace(valid_stats(), affinity_percent=Decimal("NaN")),
+            ),
+            (
+                "monster_damage_modifier",
+                lambda: replace(
+                    valid_target(), monster_damage_modifier=Decimal("Infinity")
+                ),
+            ),
+        )
+        for field, construct in cases:
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(DamageInputError, field):
+                    construct()
+
 
 class ContinuousHitDamageTests(unittest.TestCase):
     def setUp(self) -> None:
@@ -163,6 +182,18 @@ class ContinuousHitDamageTests(unittest.TestCase):
         self.assertEqual(result.elemental, Decimal("0"))
         self.assertEqual(result.total, Decimal("0"))
 
+    def test_rejects_invalid_manually_constructed_hit(self) -> None:
+        cases = (
+            ("motion_value", replace(self.hit, motion_value=Decimal("-1"))),
+            ("element_modifier", replace(self.hit, element_modifier=Decimal("0"))),
+            ("motion_value", replace(self.hit, motion_value=0.5)),
+            ("damage_type", replace(self.hit, damage_type="blunt")),
+        )
+        for field, hit in cases:
+            with self.subTest(field=field, value=getattr(hit, field)):
+                with self.assertRaisesRegex(DamageInputError, field):
+                    calculate_hit_damage(self.stats, hit, self.target)
+
 
 class ContinuousComboDamageTests(unittest.TestCase):
     def test_aggregates_ordered_hits_and_propagates_weakest_status(self) -> None:
@@ -229,6 +260,18 @@ class GameExactDamageTests(unittest.TestCase):
         with self.assertRaisesRegex(UnverifiedDamageError, "data"):
             calculate_combo_damage(
                 self.combo,
+                self.stats,
+                self.target,
+                rules=self.verified_rules,
+                mode=CalculationMode.GAME_EXACT,
+            )
+
+    def test_empty_combo_cannot_bypass_exact_mode_data_gate(self) -> None:
+        empty_combo = replace(self.combo, hits=())
+
+        with self.assertRaisesRegex(UnverifiedDamageError, "data"):
+            calculate_combo_damage(
+                empty_combo,
                 self.stats,
                 self.target,
                 rules=self.verified_rules,

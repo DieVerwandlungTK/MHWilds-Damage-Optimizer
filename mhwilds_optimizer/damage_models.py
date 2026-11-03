@@ -32,6 +32,8 @@ class Sharpness(StrEnum):
 def _require_decimal(value: object, field: str) -> Decimal:
     if not isinstance(value, Decimal):
         raise DamageInputError(f"{field} must be Decimal")
+    if not value.is_finite():
+        raise DamageInputError(f"{field} must be finite")
     return value
 
 

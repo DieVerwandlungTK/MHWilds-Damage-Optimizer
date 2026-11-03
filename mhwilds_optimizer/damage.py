@@ -54,6 +54,36 @@ def _warnings(status: VerificationStatus) -> tuple[str, ...]:
     )
 
 
+def _require_exact_verified(
+    mode: CalculationMode,
+    data_status: VerificationStatus,
+    rules_status: VerificationStatus,
+) -> None:
+    if mode is not CalculationMode.GAME_EXACT:
+        return
+    if data_status is not VerificationStatus.VERIFIED:
+        raise UnverifiedDamageError(
+            f"game_exact requires verified data; got {data_status.value}"
+        )
+    if rules_status is not VerificationStatus.VERIFIED:
+        raise UnverifiedDamageError(
+            f"game_exact requires verified rules; got {rules_status.value}"
+        )
+
+
+def _validate_hit(hit: Hit) -> None:
+    if not isinstance(hit, Hit):
+        raise DamageInputError("hit must be a Hit value")
+    for field in ("motion_value", "element_modifier"):
+        value = getattr(hit, field)
+        if not isinstance(value, Decimal):
+            raise DamageInputError(f"{field} must be Decimal")
+        if not value.is_finite() or value <= 0:
+            raise DamageInputError(f"{field} must be finite and positive")
+    if hit.damage_type != "sever":
+        raise DamageInputError("damage_type must be sever")
+
+
 def calculate_hit_damage(
     stats: CombatStats,
     hit: Hit,
@@ -68,16 +98,8 @@ def calculate_hit_damage(
         raise DamageInputError("data_status must be a VerificationStatus value")
     if not isinstance(mode, CalculationMode):
         raise DamageInputError("mode must be a CalculationMode value")
-    if mode is CalculationMode.GAME_EXACT:
-        if data_status is not VerificationStatus.VERIFIED:
-            raise UnverifiedDamageError(
-                f"game_exact requires verified data; got {data_status.value}"
-            )
-        if rules.verification_status is not VerificationStatus.VERIFIED:
-            raise UnverifiedDamageError(
-                "game_exact requires verified rules; "
-                f"got {rules.verification_status.value}"
-            )
+    _require_exact_verified(mode, data_status, rules.verification_status)
+    _validate_hit(hit)
 
     sharpness = rules.sharpness[stats.sharpness]
     raw_dodge = (
@@ -136,6 +158,11 @@ def calculate_combo_damage(
     mode: CalculationMode = CalculationMode.CONTINUOUS_APPROX,
 ) -> ComboDamage:
     """Calculate and aggregate every ordered hit in a combo."""
+    if not isinstance(mode, CalculationMode):
+        raise DamageInputError("mode must be a CalculationMode value")
+    _require_exact_verified(
+        mode, combo.verification_status, rules.verification_status
+    )
     hits = tuple(
         calculate_hit_damage(
             stats,
