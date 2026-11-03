@@ -41,3 +41,39 @@ uv run --no-project --python 3.12 python -m mhwilds_optimizer.data_normalization
 出力先は `data/normalized/mhdb/<commit>/` です。固定コミットでは、スキル179件、防具714件、装飾品361件、通常護石183件を生成し、ランダム護石の親レコード4件を通常護石から除外してレポートします。
 
 再実行時はraw manifestと全正規化ファイルのSHA-256を検証し、正常な既存データを再利用します。正規化データにも日英名称が含まれるため、`data/normalized/` もGit管理外です。フィールド仕様は [`docs/data-schema.md`](docs/data-schema.md) を参照してください。
+
+## 双剣・乱舞 I〜III のダメージ計算
+
+乱舞 I、II、III の計27ヒットを、装備探索から独立した純Python APIで連続近似できます。入力する攻撃力・属性値・会心率は、スキルやバフを解決した後の実効値です。
+
+```python
+from decimal import Decimal
+
+from mhwilds_optimizer.combo_data import load_combo
+from mhwilds_optimizer.damage import calculate_combo_damage
+from mhwilds_optimizer.damage_models import CombatStats, Sharpness, TargetHitzones
+
+combo = load_combo()
+stats = CombatStats(
+    raw=Decimal("100"),
+    element=Decimal("20"),
+    affinity_percent=Decimal("25"),
+    positive_critical_modifier=Decimal("1.25"),
+    negative_critical_modifier=Decimal("0.75"),
+    sharpness=Sharpness.WHITE,
+    demon_dodge_buff=True,
+)
+target = TargetHitzones(
+    sever=Decimal("60"),
+    element=Decimal("20"),
+    monster_damage_modifier=Decimal("1"),
+)
+
+result = calculate_combo_damage(combo, stats, target)
+print(result.total, result.physical, result.elemental)
+print(result.verification_status, result.warnings)
+```
+
+乱舞の数値は Ver.1.020.00 の2資料を照合し、公式更新情報を Ver.1.042.00.03 まで確認しています。ただしゲーム内実測による回帰データがまだないため、コンボデータと計算ルールの検証状態は `cross_checked` です。現時点では丸めなしの `continuous_approx` のみ利用でき、`game_exact` はデータとルールの両方が `verified` に昇格するまで `UnverifiedDamageError` で停止します。
+
+出典と保証範囲の詳細は [`双剣乱舞ダメージ基盤 設計`](docs/superpowers/specs/2026-11-03-dual-blades-damage-foundation-design.md) を参照してください。

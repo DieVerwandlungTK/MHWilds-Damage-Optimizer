@@ -3,7 +3,11 @@ from dataclasses import replace
 from decimal import Decimal
 
 from mhwilds_optimizer.combo_data import Hit, VerificationStatus, load_combo
-from mhwilds_optimizer.damage import calculate_combo_damage, calculate_hit_damage
+from mhwilds_optimizer.damage import (
+    UnverifiedDamageError,
+    calculate_combo_damage,
+    calculate_hit_damage,
+)
 from mhwilds_optimizer.damage_models import (
     DEFAULT_DAMAGE_RULES,
     CalculationMode,
@@ -189,6 +193,108 @@ class ContinuousComboDamageTests(unittest.TestCase):
         self.assertEqual(result.total, Decimal("347.59"))
         self.assertEqual(result.verification_status, VerificationStatus.CROSS_CHECKED)
         self.assertTrue(any("cross_checked" in warning for warning in result.warnings))
+
+
+class GameExactDamageTests(unittest.TestCase):
+    def setUp(self) -> None:
+        self.combo = load_combo()
+        self.hit = Hit(
+            index=1,
+            move_id="rounding_test",
+            move_hit_index=1,
+            motion_value=Decimal("8"),
+            element_modifier=Decimal("0.6"),
+            damage_type="sever",
+        )
+        self.stats = CombatStats(
+            raw=Decimal("117"),
+            element=Decimal("19"),
+            affinity_percent=Decimal("0"),
+            positive_critical_modifier=Decimal("1.25"),
+            negative_critical_modifier=Decimal("0.75"),
+            sharpness=Sharpness.GREEN,
+            demon_dodge_buff=False,
+        )
+        self.target = TargetHitzones(
+            sever=Decimal("60"),
+            element=Decimal("25"),
+            monster_damage_modifier=Decimal("1"),
+        )
+        self.verified_rules = replace(
+            DEFAULT_DAMAGE_RULES,
+            verification_status=VerificationStatus.VERIFIED,
+        )
+
+    def test_rejects_cross_checked_combo_data_in_exact_mode(self) -> None:
+        with self.assertRaisesRegex(UnverifiedDamageError, "data"):
+            calculate_combo_damage(
+                self.combo,
+                self.stats,
+                self.target,
+                rules=self.verified_rules,
+                mode=CalculationMode.GAME_EXACT,
+            )
+
+    def test_rejects_cross_checked_rules_in_exact_mode(self) -> None:
+        verified_combo = replace(
+            self.combo,
+            verification_status=VerificationStatus.VERIFIED,
+        )
+
+        with self.assertRaisesRegex(UnverifiedDamageError, "rules"):
+            calculate_combo_damage(
+                verified_combo,
+                self.stats,
+                self.target,
+                mode=CalculationMode.GAME_EXACT,
+            )
+
+    def test_rounds_each_verified_hit_component_half_up(self) -> None:
+        result = calculate_hit_damage(
+            self.stats,
+            self.hit,
+            self.target,
+            rules=self.verified_rules,
+            data_status=VerificationStatus.VERIFIED,
+            mode=CalculationMode.GAME_EXACT,
+        )
+
+        self.assertEqual(result.physical, Decimal("5.9"))
+        self.assertEqual(result.elemental, Decimal("2.9"))
+        self.assertEqual(result.total, Decimal("8.8"))
+        self.assertEqual(result.warnings, ())
+
+    def test_sums_rounded_hits_without_rerounding_combo_totals(self) -> None:
+        verified_combo = replace(
+            self.combo,
+            verification_status=VerificationStatus.VERIFIED,
+            hits=(self.hit, replace(self.hit, index=2, move_hit_index=2)),
+        )
+
+        result = calculate_combo_damage(
+            verified_combo,
+            self.stats,
+            self.target,
+            rules=self.verified_rules,
+            mode=CalculationMode.GAME_EXACT,
+        )
+
+        self.assertEqual(result.physical, Decimal("11.8"))
+        self.assertEqual(result.elemental, Decimal("5.8"))
+        self.assertEqual(result.total, Decimal("17.6"))
+        self.assertEqual([hit.total for hit in result.hits], [Decimal("8.8")] * 2)
+
+    def test_continuous_mode_remains_unrounded_for_cross_checked_inputs(self) -> None:
+        result = calculate_hit_damage(
+            self.stats,
+            self.hit,
+            self.target,
+            mode=CalculationMode.CONTINUOUS_APPROX,
+        )
+
+        self.assertEqual(result.physical, Decimal("5.8968"))
+        self.assertEqual(result.elemental, Decimal("2.850"))
+        self.assertEqual(result.verification_status, VerificationStatus.CROSS_CHECKED)
 
 
 if __name__ == "__main__":

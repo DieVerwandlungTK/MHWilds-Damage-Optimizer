@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 from mhwilds_optimizer.combo_data import Combo, Hit, VerificationStatus
 from mhwilds_optimizer.damage_models import (
@@ -22,6 +22,11 @@ _STATUS_ORDER = {
     VerificationStatus.CROSS_CHECKED: 1,
     VerificationStatus.VERIFIED: 2,
 }
+_DISPLAY_QUANTUM = Decimal("0.1")
+
+
+class UnverifiedDamageError(ValueError):
+    """Raised when exact calculation is requested with unverified inputs."""
 
 
 def _weaker_status(
@@ -63,8 +68,16 @@ def calculate_hit_damage(
         raise DamageInputError("data_status must be a VerificationStatus value")
     if not isinstance(mode, CalculationMode):
         raise DamageInputError("mode must be a CalculationMode value")
-    if mode is not CalculationMode.CONTINUOUS_APPROX:
-        raise NotImplementedError("game_exact is not implemented")
+    if mode is CalculationMode.GAME_EXACT:
+        if data_status is not VerificationStatus.VERIFIED:
+            raise UnverifiedDamageError(
+                f"game_exact requires verified data; got {data_status.value}"
+            )
+        if rules.verification_status is not VerificationStatus.VERIFIED:
+            raise UnverifiedDamageError(
+                "game_exact requires verified rules; "
+                f"got {rules.verification_status.value}"
+            )
 
     sharpness = rules.sharpness[stats.sharpness]
     raw_dodge = (
@@ -98,6 +111,9 @@ def calculate_hit_damage(
         / _HUNDRED
         * target.monster_damage_modifier
     )
+    if mode is CalculationMode.GAME_EXACT:
+        physical = physical.quantize(_DISPLAY_QUANTUM, rounding=ROUND_HALF_UP)
+        elemental = elemental.quantize(_DISPLAY_QUANTUM, rounding=ROUND_HALF_UP)
     status = _weaker_status(data_status, rules.verification_status)
     return HitDamage(
         hit=hit,
