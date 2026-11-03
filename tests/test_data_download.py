@@ -140,6 +140,20 @@ class DownloadDataTests(unittest.TestCase):
             ):
                 download_mhdb_data(raw_root, fetch=lambda _url: b"[]")
 
+    def test_rejects_malformed_manifest_with_verification_error(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            raw_root = Path(temporary_directory)
+            download_dir = download_mhdb_data(raw_root, fetch=lambda _url: b"[]")
+            manifest_path = download_dir / "manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["files"] = [None]
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+            with self.assertRaisesRegex(
+                data_download.DownloadVerificationError, "file list"
+            ):
+                download_mhdb_data(raw_root, fetch=lambda _url: b"[]")
+
     def test_cli_help_documents_source_and_output(self) -> None:
         output = io.StringIO()
 

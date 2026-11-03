@@ -78,8 +78,10 @@ def verify_mhdb_download(download_dir: Path) -> None:
     if manifest.get("source") != expected_source:
         raise DownloadVerificationError("manifest.json source does not match pinned MHDB data")
     entries = manifest.get("files")
-    if not isinstance(entries, list) or [entry.get("name") for entry in entries] != list(
-        MHDB_FILES
+    if (
+        not isinstance(entries, list)
+        or any(not isinstance(entry, dict) for entry in entries)
+        or [entry.get("name") for entry in entries] != list(MHDB_FILES)
     ):
         raise DownloadVerificationError("manifest.json file list does not match pinned files")
 
