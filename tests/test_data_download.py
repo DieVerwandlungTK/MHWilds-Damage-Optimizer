@@ -1,6 +1,8 @@
 import json
+import io
 import tempfile
 import unittest
+from contextlib import redirect_stdout
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -137,6 +139,19 @@ class DownloadDataTests(unittest.TestCase):
                 data_download.DownloadVerificationError, "Armor.json"
             ):
                 download_mhdb_data(raw_root, fetch=lambda _url: b"[]")
+
+    def test_cli_help_documents_source_and_output(self) -> None:
+        output = io.StringIO()
+
+        with redirect_stdout(output), self.assertRaises(SystemExit) as exit_context:
+            data_download.main(["--help"])
+
+        self.assertEqual(exit_context.exception.code, 0)
+        help_text = output.getvalue()
+        self.assertIn("--source", help_text)
+        self.assertIn("mhdb", help_text)
+        self.assertIn("--output", help_text)
+        self.assertIn("data/raw", help_text)
 
 
 if __name__ == "__main__":

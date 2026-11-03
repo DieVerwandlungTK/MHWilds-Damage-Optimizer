@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import tempfile
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from datetime import datetime, timezone
 from pathlib import Path
 from urllib.request import urlopen
@@ -155,3 +156,28 @@ def download_mhdb_data(
         staging.rename(target)
     verify_mhdb_download(target)
     return target
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    """Run the MHDB data download command."""
+    parser = argparse.ArgumentParser(description="Download pinned source data")
+    parser.add_argument(
+        "--source",
+        choices=("mhdb",),
+        default="mhdb",
+        help="data source to download (default: mhdb)",
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("data/raw"),
+        help="raw data root (default: data/raw)",
+    )
+    arguments = parser.parse_args(argv)
+    download_dir = download_mhdb_data(arguments.output)
+    print(download_dir)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
