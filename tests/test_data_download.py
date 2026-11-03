@@ -4,6 +4,7 @@ import unittest
 from datetime import datetime, timezone
 from pathlib import Path
 
+import mhwilds_optimizer.data_download as data_download
 from mhwilds_optimizer.data_download import (
     MHDB_COMMIT,
     MHDB_FILES,
@@ -14,6 +15,11 @@ from mhwilds_optimizer.data_download import (
 
 
 class DownloadDataTests(unittest.TestCase):
+    def assert_no_download_artifacts(self, raw_root: Path) -> None:
+        source_root = raw_root / "mhdb"
+        self.assertFalse((source_root / MHDB_COMMIT).exists())
+        self.assertEqual(list(source_root.iterdir()), [])
+
     def test_downloads_pinned_files_and_writes_manifest(self) -> None:
         payloads = {
             "Armor.json": b'[{"game_id":1}]',
@@ -71,6 +77,66 @@ class DownloadDataTests(unittest.TestCase):
                 self.assertEqual(item["url"], fetched_urls[list(payloads).index(name)])
                 self.assertEqual(item["size"], len(payloads[name]))
                 self.assertEqual(item["sha256"], expected_hashes[name])
+
+    def test_invalid_json_leaves_no_final_directory(self) -> None:
+        payloads = {
+            "Armor.json": b"[]",
+            "Accessory.json": b"[]",
+            "Amulet.json": b"[]",
+            "Skill.json": b"[",
+        }
+
+        def fetch(url: str) -> bytes:
+            return payloads[url.rsplit("/", 1)[-1]]
+
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            raw_root = Path(temporary_directory)
+
+            with self.assertRaises(json.JSONDecodeError):
+                download_mhdb_data(raw_root, fetch=fetch)
+
+            self.assert_no_download_artifacts(raw_root)
+
+    def test_fetch_failure_after_first_file_leaves_no_partial_download(self) -> None:
+        calls = 0
+
+        def fetch(_url: str) -> bytes:
+            nonlocal calls
+            calls += 1
+            if calls == 2:
+                raise OSError("connection interrupted")
+            return b"[]"
+
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            raw_root = Path(temporary_directory)
+
+            with self.assertRaisesRegex(OSError, "connection interrupted"):
+                download_mhdb_data(raw_root, fetch=fetch)
+
+            self.assert_no_download_artifacts(raw_root)
+
+    def test_reuses_verified_download_without_fetching(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            raw_root = Path(temporary_directory)
+            first_result = download_mhdb_data(raw_root, fetch=lambda _url: b"[]")
+
+            def unexpected_fetch(_url: str) -> bytes:
+                self.fail("verified downloads must not contact the network")
+
+            second_result = download_mhdb_data(raw_root, fetch=unexpected_fetch)
+
+            self.assertEqual(second_result, first_result)
+
+    def test_rejects_tampered_existing_file(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            raw_root = Path(temporary_directory)
+            download_dir = download_mhdb_data(raw_root, fetch=lambda _url: b"[]")
+            (download_dir / "Armor.json").write_bytes(b"[{}]")
+
+            with self.assertRaisesRegex(
+                data_download.DownloadVerificationError, "Armor.json"
+            ):
+                download_mhdb_data(raw_root, fetch=lambda _url: b"[]")
 
 
 if __name__ == "__main__":
