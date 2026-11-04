@@ -3,5 +3,10 @@ name = "mhwilds-sim"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.12"
-dependencies = []
+requires-python = ">=3.11,<3.12"
+dependencies = [
+    "mip[highs]",
+]
+
+[tool.uv.sources]
+mip = { git = "https://github.com/coin-or/python-mip.git", rev = "50f00c92b3b093d7bd554a61e5e672e5c5e43aec" }
