@@ -58,6 +58,13 @@ class EquipmentCatalogTests(unittest.TestCase):
                 with self.assertRaisesRegex(EquipmentInputError, rf"duplicate.*{kind}"):
                     construct()
 
+    def test_rejects_an_owner_id_shared_by_armor_and_charm(self) -> None:
+        catalog = make_tiny_catalog()
+        conflicting_charm = RegularCharm(catalog.armor[0].id, {}, ())
+
+        with self.assertRaisesRegex(EquipmentInputError, "armor and charm"):
+            replace(catalog, charms=(conflicting_charm, *catalog.charms[1:]))
+
     def test_rejects_unknown_skill_references(self) -> None:
         catalog = make_tiny_catalog()
         bad_piece = ArmorPiece(

@@ -167,6 +167,14 @@ class EquipmentCatalog:
         _duplicate_id(self.armor, "armor")
         _duplicate_id(self.decorations, "decoration")
         _duplicate_id(self.charms, "charm")
+        shared_owner_ids = {piece.id for piece in self.armor} & {
+            charm.id for charm in self.charms
+        }
+        if shared_owner_ids:
+            identifier = min(shared_owner_ids)
+            raise EquipmentInputError(
+                f"owner id shared by armor and charm: {identifier}"
+            )
 
         skill_levels = {skill.id: skill.max_level for skill in self.skills}
         equipment = (*self.armor, *self.decorations, *self.charms)
