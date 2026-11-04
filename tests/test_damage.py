@@ -45,6 +45,9 @@ class DamageModelTests(unittest.TestCase):
 
         self.assertEqual(stats.raw, Decimal("100"))
         self.assertEqual(stats.sharpness, Sharpness.WHITE)
+        self.assertEqual(stats.raw_damage_modifier, Decimal("1"))
+        self.assertEqual(stats.element_damage_modifier, Decimal("1"))
+        self.assertEqual(stats.positive_element_critical_modifier, Decimal("1"))
         self.assertEqual(target.sever, Decimal("60"))
 
     def test_default_rules_use_sourced_sharpness_modifiers(self) -> None:
@@ -82,6 +85,25 @@ class DamageModelTests(unittest.TestCase):
             replace(valid_stats(), affinity_percent=Decimal("-100.1"))
         with self.assertRaisesRegex(DamageInputError, "raw"):
             replace(valid_stats(), raw=100)  # type: ignore[arg-type]
+
+    def test_rejects_invalid_skill_damage_modifiers(self) -> None:
+        fields = (
+            "raw_damage_modifier",
+            "element_damage_modifier",
+            "positive_element_critical_modifier",
+        )
+        invalid_values = (
+            1,
+            1.0,
+            Decimal("0"),
+            Decimal("-0.1"),
+            Decimal("Infinity"),
+        )
+        for field in fields:
+            for value in invalid_values:
+                with self.subTest(field=field, value=value):
+                    with self.assertRaisesRegex(DamageInputError, field):
+                        replace(valid_stats(), **{field: value})
 
     def test_rejects_invalid_target_hitzones_and_multiplier(self) -> None:
         cases = {
@@ -157,6 +179,48 @@ class ContinuousHitDamageTests(unittest.TestCase):
 
         self.assertEqual(result.expected_critical_modifier, Decimal("0.90"))
         self.assertEqual(result.physical, Decimal("5.670000"))
+
+    def test_raw_damage_modifier_affects_only_physical_once(self) -> None:
+        result = self.calculate(raw_damage_modifier=Decimal("1.2"))
+
+        self.assertEqual(result.physical, Decimal("7.56000"))
+        self.assertEqual(result.elemental, Decimal("3.000"))
+
+    def test_element_damage_modifier_affects_only_elemental_once(self) -> None:
+        result = self.calculate(element_damage_modifier=Decimal("1.3"))
+
+        self.assertEqual(result.physical, Decimal("6.3000"))
+        self.assertEqual(result.elemental, Decimal("3.9000"))
+
+    def test_positive_affinity_applies_element_critical_modifier(self) -> None:
+        result = self.calculate(
+            affinity_percent=Decimal("40"),
+            positive_element_critical_modifier=Decimal("1.25"),
+        )
+
+        self.assertEqual(result.physical, Decimal("6.930000"))
+        self.assertEqual(result.elemental, Decimal("3.30000"))
+
+    def test_negative_affinity_does_not_reduce_elemental_damage(self) -> None:
+        result = self.calculate(
+            affinity_percent=Decimal("-40"),
+            positive_element_critical_modifier=Decimal("1.25"),
+        )
+
+        self.assertEqual(result.physical, Decimal("5.670000"))
+        self.assertEqual(result.elemental, Decimal("3.000"))
+
+    def test_skill_modifiers_compose_with_demon_dodge_once(self) -> None:
+        result = self.calculate(
+            affinity_percent=Decimal("40"),
+            demon_dodge_buff=True,
+            raw_damage_modifier=Decimal("1.2"),
+            element_damage_modifier=Decimal("1.3"),
+            positive_element_critical_modifier=Decimal("1.25"),
+        )
+
+        self.assertEqual(result.physical, Decimal("9.56340000"))
+        self.assertEqual(result.elemental, Decimal("5.5770000"))
 
     def test_demon_dodge_uses_separate_raw_and_element_modifiers(self) -> None:
         result = self.calculate(demon_dodge_buff=True)

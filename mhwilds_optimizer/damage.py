@@ -46,6 +46,15 @@ def _expected_critical_modifier(stats: CombatStats) -> Decimal:
     )
 
 
+def _expected_element_critical_modifier(stats: CombatStats) -> Decimal:
+    affinity = stats.affinity_percent / _HUNDRED
+    if affinity <= 0:
+        return Decimal("1")
+    return Decimal("1") + affinity * (
+        stats.positive_element_critical_modifier - Decimal("1")
+    )
+
+
 def _warnings(status: VerificationStatus) -> tuple[str, ...]:
     if status is VerificationStatus.VERIFIED:
         return ()
@@ -113,6 +122,7 @@ def calculate_hit_damage(
         else Decimal("1")
     )
     critical = _expected_critical_modifier(stats)
+    element_critical = _expected_element_critical_modifier(stats)
     physical = (
         stats.raw
         * raw_dodge
@@ -123,6 +133,7 @@ def calculate_hit_damage(
         / _HUNDRED
         * target.monster_damage_modifier
         * critical
+        * stats.raw_damage_modifier
     )
     elemental = (
         stats.element
@@ -132,6 +143,8 @@ def calculate_hit_damage(
         * target.element
         / _HUNDRED
         * target.monster_damage_modifier
+        * element_critical
+        * stats.element_damage_modifier
     )
     if mode is CalculationMode.GAME_EXACT:
         physical = physical.quantize(_DISPLAY_QUANTUM, rounding=ROUND_HALF_UP)
