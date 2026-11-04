@@ -1,4 +1,4 @@
-"""Python-MIP feasibility model for armor, charms, and armor decorations."""
+"""Python-MIP feasibility model for fixed weapons and other equipment."""
 
 from __future__ import annotations
 
@@ -156,6 +156,11 @@ def _build_model(
         for decoration in catalog.decorations
         if decoration.slot_type is SlotType.ARMOR
     )
+    weapon_decorations = tuple(
+        decoration
+        for decoration in catalog.decorations
+        if decoration.slot_type is SlotType.WEAPON
+    )
     placement_variables: dict[PlacementKey, Var] = {}
     owners = (
         *((piece, armor_variables[piece.id]) for piece in catalog.armor),
@@ -176,6 +181,21 @@ def _build_model(
                 variables.append(variable)
             if variables:
                 model += xsum(variables) <= selected
+    if weapon is not None:
+        for slot_index, slot_level in enumerate(weapon.slots):
+            variables = []
+            for decoration in weapon_decorations:
+                if decoration.required_slot_level > slot_level:
+                    continue
+                key = (weapon.id, slot_index, decoration.id)
+                variable = model.add_var(
+                    name=f"decoration:{len(placement_variables)}",
+                    var_type=BINARY,
+                )
+                placement_variables[key] = variable
+                variables.append(variable)
+            if variables:
+                model += xsum(variables) <= 1
 
     skill_expressions = {}
     for skill in catalog.skills:
@@ -192,7 +212,9 @@ def _build_model(
             level = charm.skills.get(skill.id, 0)
             if level:
                 terms.append(level * charm_variables[charm.id])
-        decorations = {item.id: item for item in armor_decorations}
+        decorations = {
+            item.id: item for item in (*armor_decorations, *weapon_decorations)
+        }
         for key, variable in placement_variables.items():
             level = decorations[key[2]].skills.get(skill.id, 0)
             if level:

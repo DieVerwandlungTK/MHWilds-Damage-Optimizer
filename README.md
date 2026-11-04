@@ -53,17 +53,31 @@ uv run python -m mhwilds_optimizer.data_normalization \
 
 ## 装備構成の実現可能性判定
 
-正規化済みデータから、防具5部位・通常護石1個・防具用装飾品の合法な構成をHiGHSで探索できます。選択した防具が持つシリーズ／グループのタグ数に応じたスキルレベルも発動し、通常スキルと同じく `minimum`、`exact`、`forbidden` の要求対象にできます。スキルIDは `skills.json` に含まれる実際のIDへ置き換えてください。
+正規化済みデータと手入力した完成武器から、防具5部位・通常護石1個・防具用／武器用装飾品の合法な構成をHiGHSで探索できます。選択した防具が持つシリーズ／グループのタグ数に応じたスキルレベルも発動し、通常スキルと同じく `minimum`、`exact`、`forbidden` の要求対象にできます。スキルIDは `skills.json` に含まれる実際のIDへ置き換えてください。
 
 ```python
+from decimal import Decimal
 from pathlib import Path
 
 from mhwilds_optimizer.constraints import solve_feasible_build
+from mhwilds_optimizer.damage_models import Sharpness
 from mhwilds_optimizer.equipment_data import load_equipment_catalog
 from mhwilds_optimizer.equipment_models import RequirementKind, SkillRequirement
+from mhwilds_optimizer.weapon_models import ElementType, Weapon
 
 catalog = load_equipment_catalog(
     Path("data/normalized/mhdb/<commit>")
+)
+weapon = Weapon(
+    id="manual:dual-blades",
+    name="入力した双剣",
+    raw=Decimal("210"),
+    element_type=ElementType.FIRE,
+    element=Decimal("24"),
+    affinity_percent=Decimal("15"),
+    sharpness=Sharpness.WHITE,
+    slots=(3, 2, 1),
+    skills={"skill:<weapon_game_id>": 1},
 )
 result = solve_feasible_build(
     catalog,
@@ -74,10 +88,13 @@ result = solve_feasible_build(
             3,
         ),
     ),
+    weapon=weapon,
 )
 
 print(result.status, result.build, result.message)
 ```
+
+武器は候補から選択されるのではなく、1回の探索につき入力した1本へ固定されます。結果の `weapon_id` は入力したIDとなり、武器装飾品の `DecorationPlacement.owner_id` にも同じIDが入ります。武器を省略すれば、従来どおり武器スロット・固有スキルなしで判定します。
 
 結果ステータスの意味は次のとおりです。
 
@@ -85,7 +102,7 @@ print(result.status, result.build, result.message)
 - `infeasible`: 候補集合では要求を満たす構成が存在しない。
 - `error`: ソルバーの初期化・実行・解の復元に失敗した。`message` に原因を含みます。
 
-現段階では火力目的関数、Top N、武器選択と武器スロット、シリーズ／グループスキルの具体的な戦闘効果を扱いません。武器がシリーズスキルの必要部位数へ寄与するルールも未実装です。武器用装飾品は読み込みますが、防具・護石スロットへの配置候補から除外します。
+現段階では火力目的関数、Top N、武器選択、状態異常、スキルによる武器能力値補正、シリーズ／グループスキルの具体的な戦闘効果を扱いません。武器がシリーズ／グループスキルの必要部位数へ寄与するルールも未実装です。武器値は通常武器・アーティア武器とも完成時点の値を手入力し、アーティアの生成・強化規則は検証しません。武器用装飾品は武器スロットだけ、防具用装飾品は防具・護石スロットだけに配置されます。
 
 ## 双剣・乱舞 I〜III のダメージ計算
 

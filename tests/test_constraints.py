@@ -291,6 +291,119 @@ class FeasibilitySolverTests(unittest.TestCase):
                 make_tiny_catalog(), (), weapon="weapon:test"  # type: ignore[arg-type]
             )
 
+    def test_places_only_compatible_weapon_decorations_in_weapon_slots(self) -> None:
+        catalog = make_tiny_catalog()
+        catalog = replace(
+            catalog,
+            skills=tuple(
+                SkillDefinition(skill.id, skill.kind, 3)
+                if skill.id == "skill:weapon"
+                else skill
+                for skill in catalog.skills
+            ),
+            armor=tuple(replace(piece, slots=()) for piece in catalog.armor),
+            charms=tuple(replace(charm, slots=()) for charm in catalog.charms),
+            decorations=(
+                Decoration(
+                    "decoration:weapon:small",
+                    SlotType.WEAPON,
+                    1,
+                    {"skill:weapon": 1},
+                ),
+                Decoration(
+                    "decoration:weapon:medium",
+                    SlotType.WEAPON,
+                    2,
+                    {"skill:weapon": 2},
+                ),
+                Decoration(
+                    "decoration:weapon:large",
+                    SlotType.WEAPON,
+                    3,
+                    {"skill:weapon": 3},
+                ),
+            ),
+        )
+
+        result = solve_feasible_build(
+            catalog,
+            (SkillRequirement("skill:weapon", RequirementKind.MINIMUM, 3),),
+            weapon=manual_weapon(slots=(2, 1)),
+        )
+
+        self.assertEqual(result.status, SolveStatus.FEASIBLE)
+        assert result.build is not None
+        self.assertEqual(
+            tuple(
+                (placement.owner_id, placement.slot_index, placement.decoration_id)
+                for placement in result.build.decorations
+            ),
+            (
+                ("weapon:test", 0, "decoration:weapon:medium"),
+                ("weapon:test", 1, "decoration:weapon:small"),
+            ),
+        )
+        self.assertEqual(result.build.granted_skill_levels["skill:weapon"], 3)
+
+    def test_does_not_place_a_large_decoration_in_smaller_weapon_slots(self) -> None:
+        catalog = make_tiny_catalog()
+        catalog = replace(
+            catalog,
+            armor=tuple(replace(piece, slots=()) for piece in catalog.armor),
+            charms=tuple(replace(charm, slots=()) for charm in catalog.charms),
+            decorations=(
+                Decoration(
+                    "decoration:weapon:large",
+                    SlotType.WEAPON,
+                    3,
+                    {"skill:weapon": 1},
+                ),
+            ),
+        )
+
+        result = solve_feasible_build(
+            catalog,
+            (SkillRequirement("skill:weapon", RequirementKind.MINIMUM, 1),),
+            weapon=manual_weapon(slots=(2, 1)),
+        )
+
+        self.assertEqual(result.status, SolveStatus.INFEASIBLE)
+
+    def test_does_not_place_armor_decorations_in_weapon_slots(self) -> None:
+        catalog = make_tiny_catalog()
+        catalog = replace(
+            catalog,
+            armor=tuple(replace(piece, slots=()) for piece in catalog.armor),
+            charms=tuple(replace(charm, slots=()) for charm in catalog.charms),
+            decorations=(
+                Decoration(
+                    "decoration:armor:weapon-skill",
+                    SlotType.ARMOR,
+                    1,
+                    {"skill:weapon": 1},
+                ),
+            ),
+        )
+
+        result = solve_feasible_build(
+            catalog,
+            (SkillRequirement("skill:weapon", RequirementKind.MINIMUM, 1),),
+            weapon=manual_weapon(slots=(3,)),
+        )
+
+        self.assertEqual(result.status, SolveStatus.INFEASIBLE)
+
+    def test_does_not_place_weapon_decorations_in_armor_or_charm_slots(self) -> None:
+        catalog = make_tiny_catalog()
+
+        result = solve_feasible_build(
+            catalog,
+            (SkillRequirement("skill:weapon", RequirementKind.MINIMUM, 1),),
+            weapon=manual_weapon(slots=()),
+        )
+
+        self.assertEqual(result.status, SolveStatus.INFEASIBLE)
+
     def test_set_bonus_minimum_selects_two_tagged_pieces(self) -> None:
         catalog = with_bonus_tags(
             make_tiny_catalog(),
@@ -514,6 +627,64 @@ class FeasibilitySolverTests(unittest.TestCase):
 
 
 class FeasibleBuildEnumerationTests(unittest.TestCase):
+    def test_enumerates_distinct_weapon_decoration_assignments(self) -> None:
+        catalog = make_tiny_catalog()
+        armor = (catalog.armor[0], *catalog.armor[2:])
+        catalog = replace(
+            catalog,
+            armor=tuple(
+                replace(piece, slots=()) for piece in armor
+            ),
+            decorations=(catalog.decorations[1],),
+            charms=(catalog.charms[0],),
+        )
+        weapon = manual_weapon(slots=(1,))
+
+        result = enumerate_feasible_builds(catalog, (), weapon=weapon)
+        signatures = {
+            (
+                build.weapon_id,
+                tuple(
+                    (item.owner_id, item.slot_index, item.decoration_id)
+                    for item in build.decorations
+                ),
+            )
+            for build in result.builds
+        }
+
+        self.assertEqual(result.status, SolveStatus.FEASIBLE)
+        self.assertEqual(
+            signatures,
+            {
+                ("weapon:test", ()),
+                (
+                    "weapon:test",
+                    (("weapon:test", 0, "decoration:weapon"),),
+                ),
+            },
+        )
+        self.assertEqual(len(result.builds), len(signatures))
+
+    def test_weapon_decoration_enumeration_limit_is_repeatable(self) -> None:
+        catalog = make_tiny_catalog()
+        armor = (catalog.armor[0], *catalog.armor[2:])
+        catalog = replace(
+            catalog,
+            armor=tuple(replace(piece, slots=()) for piece in armor),
+            decorations=(catalog.decorations[1],),
+            charms=(catalog.charms[0],),
+        )
+        weapon = manual_weapon(slots=(1,))
+
+        first = enumerate_feasible_builds(catalog, (), limit=1, weapon=weapon)
+        second = enumerate_feasible_builds(catalog, (), limit=1, weapon=weapon)
+
+        self.assertEqual(first.status, SolveStatus.FEASIBLE)
+        self.assertEqual(len(first.builds), 1)
+        self.assertEqual(
+            build_signature(first.builds[0]), build_signature(second.builds[0])
+        )
+
     def test_bonus_requirements_match_independent_exhaustive_search(self) -> None:
         ranked_catalog = with_bonus_tags(
             make_tiny_catalog(),
