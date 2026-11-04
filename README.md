@@ -1,13 +1,22 @@
 # mhwilds-sim
 
-Monster Hunter Wilds のコンボ期待ダメージを最大化する装備構成を探索する、Python CLI プロジェクトです。現在はデータ取得基盤を実装しています。
+Monster Hunter Wilds のコンボ期待ダメージを最大化する装備構成を探索する、Python CLI プロジェクトです。現在はデータ取得・ダメージ計算と、装備構成の実現可能性判定まで実装しています。
+
+## Python環境
+
+Python 3.11 と [uv](https://docs.astral.sh/uv/) を使用します。依存関係には、固定コミットのPython-MIPとHiGHSが含まれます。
+
+```bash
+uv sync
+uv run python -m unittest discover -s tests -v
+```
 
 ## MHDBデータの取得
 
-Python 3.12環境で、リポジトリのルートから次を実行します。
+Python 3.11環境で、リポジトリのルートから次を実行します。
 
 ```bash
-uv run --no-project --python 3.12 python -m mhwilds_optimizer.data_download \
+uv run python -m mhwilds_optimizer.data_download \
   --source mhdb \
   --output data/raw
 ```
@@ -33,7 +42,7 @@ MHDB Wilds Data のライセンスは [GPL-3.0](https://github.com/LartTyler/mhd
 rawデータ取得後、次のコマンドで最適化処理向けのデータを生成します。
 
 ```bash
-uv run --no-project --python 3.12 python -m mhwilds_optimizer.data_normalization \
+uv run python -m mhwilds_optimizer.data_normalization \
   --input data/raw \
   --output data/normalized
 ```
@@ -41,6 +50,42 @@ uv run --no-project --python 3.12 python -m mhwilds_optimizer.data_normalization
 出力先は `data/normalized/mhdb/<commit>/` です。固定コミットでは、スキル179件、防具714件、装飾品361件、通常護石183件を生成し、ランダム護石の親レコード4件を通常護石から除外してレポートします。
 
 再実行時はraw manifestと全正規化ファイルのSHA-256を検証し、正常な既存データを再利用します。正規化データにも日英名称が含まれるため、`data/normalized/` もGit管理外です。フィールド仕様は [`docs/data-schema.md`](docs/data-schema.md) を参照してください。
+
+## 装備構成の実現可能性判定
+
+正規化済みデータから、防具5部位・通常護石1個・防具用装飾品の合法な構成をHiGHSで探索できます。スキルIDは `skills.json` に含まれる実際のIDへ置き換えてください。
+
+```python
+from pathlib import Path
+
+from mhwilds_optimizer.constraints import solve_feasible_build
+from mhwilds_optimizer.equipment_data import load_equipment_catalog
+from mhwilds_optimizer.equipment_models import RequirementKind, SkillRequirement
+
+catalog = load_equipment_catalog(
+    Path("data/normalized/mhdb/<commit>")
+)
+result = solve_feasible_build(
+    catalog,
+    (
+        SkillRequirement(
+            "skill:<game_id>",
+            RequirementKind.MINIMUM,
+            3,
+        ),
+    ),
+)
+
+print(result.status, result.build, result.message)
+```
+
+結果ステータスの意味は次のとおりです。
+
+- `feasible`: 要求を満たす合法構成を発見した。火力最適性は意味しません。
+- `infeasible`: 候補集合では要求を満たす構成が存在しない。
+- `error`: ソルバーの初期化・実行・解の復元に失敗した。`message` に原因を含みます。
+
+現段階では火力目的関数、Top N、武器選択と武器スロット、シリーズ/グループスキルを扱いません。武器用装飾品は読み込みますが、防具・護石スロットへの配置候補から除外します。
 
 ## 双剣・乱舞 I〜III のダメージ計算
 
