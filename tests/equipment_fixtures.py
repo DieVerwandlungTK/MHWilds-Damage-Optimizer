@@ -16,6 +16,8 @@ def make_tiny_catalog() -> EquipmentCatalog:
             SkillDefinition("skill:attack", SkillKind.ARMOR, 3),
             SkillDefinition("skill:critical", SkillKind.ARMOR, 2),
             SkillDefinition("skill:weapon", SkillKind.WEAPON, 1),
+            SkillDefinition("skill:set", SkillKind.SET, 2),
+            SkillDefinition("skill:group", SkillKind.GROUP, 1),
         ),
         armor=(
             ArmorPiece(

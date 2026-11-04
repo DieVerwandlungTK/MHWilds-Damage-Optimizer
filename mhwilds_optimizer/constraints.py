@@ -8,6 +8,10 @@ from enum import StrEnum
 
 from mip import BINARY, HIGHS, Model, OptimizationStatus, Var, xsum
 
+from mhwilds_optimizer.equipment_bonuses import (
+    activated_bonus_levels,
+    collect_bonus_families,
+)
 from mhwilds_optimizer.equipment_models import (
     ArmorPart,
     DecorationPlacement,
@@ -42,6 +46,7 @@ class EnumerationResult:
 
 
 PlacementKey = tuple[str, int, str]
+BonusActivationKey = tuple[str, str, int]
 
 
 @dataclass
@@ -51,6 +56,7 @@ class _ModelState:
     armor_variables: Mapping[str, Var]
     charm_variables: Mapping[str, Var]
     placement_variables: Mapping[PlacementKey, Var]
+    bonus_activation_variables: Mapping[BonusActivationKey, Var]
 
     @property
     def binary_variables(self) -> tuple[Var, ...]:
@@ -96,6 +102,28 @@ def _build_model(
         )
     model += xsum(charm_variables.values()) == 1
 
+    bonus_activation_variables: dict[BonusActivationKey, Var] = {}
+    bonus_skill_terms: dict[str, list] = {}
+    for family in collect_bonus_families(catalog):
+        selected_count = xsum(
+            armor_variables[identifier] for identifier in family.armor_ids
+        )
+        previous_level = 0
+        for rank in family.ranks:
+            key = (family.kind.value, family.skill_id, rank.pieces)
+            active = model.add_var(
+                name=f"bonus:{len(bonus_activation_variables)}",
+                var_type=BINARY,
+            )
+            bonus_activation_variables[key] = active
+            model += selected_count >= rank.pieces * active
+            model += selected_count <= rank.pieces - 1 + len(ArmorPart) * active
+            increment = rank.skill_level - previous_level
+            bonus_skill_terms.setdefault(family.skill_id, []).append(
+                increment * active
+            )
+            previous_level = rank.skill_level
+
     armor_decorations = tuple(
         decoration
         for decoration in catalog.decorations
@@ -138,6 +166,7 @@ def _build_model(
             level = decorations[key[2]].skills.get(skill.id, 0)
             if level:
                 terms.append(level * variable)
+        terms.extend(bonus_skill_terms.get(skill.id, ()))
         skill_expressions[skill.id] = xsum(terms)
 
     maximums = {skill.id: skill.max_level for skill in catalog.skills}
@@ -161,6 +190,7 @@ def _build_model(
         armor_variables=armor_variables,
         charm_variables=charm_variables,
         placement_variables=placement_variables,
+        bonus_activation_variables=bonus_activation_variables,
     )
 
 
@@ -195,6 +225,11 @@ def _reconstruct_build(state: _ModelState) -> FeasibleBuild:
     for placement in placements:
         for skill_id, level in decorations[placement.decoration_id].skills.items():
             granted[skill_id] = granted.get(skill_id, 0) + level
+    bonus_levels = activated_bonus_levels(
+        state.catalog, {piece.id for piece in selected_armor.values()}
+    )
+    for skill_id, level in bonus_levels.items():
+        granted[skill_id] = granted.get(skill_id, 0) + level
     maximums = {skill.id: skill.max_level for skill in state.catalog.skills}
     effective = {
         skill_id: min(level, maximums[skill_id])
