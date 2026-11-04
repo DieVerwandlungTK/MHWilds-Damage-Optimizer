@@ -1,19 +1,128 @@
 import unittest
 from dataclasses import replace
+from itertools import product
 from unittest.mock import patch
 
+from mip import Model
+
 from mhwilds_optimizer.constraints import (
+    EnumerationResult,
     SolveStatus,
+    enumerate_feasible_builds,
     solve_feasible_build,
 )
 from mhwilds_optimizer.equipment_models import (
     ArmorPart,
     Decoration,
+    EquipmentCatalog,
+    EquipmentInputError,
+    FeasibleBuild,
     RequirementKind,
     SkillRequirement,
     SlotType,
 )
 from tests.equipment_fixtures import make_tiny_catalog
+
+
+BuildSignature = tuple[
+    tuple[tuple[str, str], ...],
+    str,
+    tuple[tuple[str, int, str], ...],
+]
+
+
+def build_signature(build: FeasibleBuild) -> BuildSignature:
+    return (
+        tuple(sorted((part.value, identifier) for part, identifier in build.armor_ids.items())),
+        build.charm_id,
+        tuple(
+            sorted(
+                (item.owner_id, item.slot_index, item.decoration_id)
+                for item in build.decorations
+            )
+        ),
+    )
+
+
+def requirements_satisfied(
+    levels: dict[str, int],
+    requirements: tuple[SkillRequirement, ...],
+    maximums: dict[str, int],
+) -> bool:
+    for requirement in requirements:
+        granted = levels.get(requirement.skill_id, 0)
+        if requirement.kind is RequirementKind.FORBIDDEN:
+            if granted != 0:
+                return False
+        elif requirement.kind is RequirementKind.MINIMUM:
+            if granted < (requirement.level or 0):
+                return False
+        elif requirement.level == maximums[requirement.skill_id]:
+            if granted < (requirement.level or 0):
+                return False
+        elif granted != requirement.level:
+            return False
+    return True
+
+
+def exhaustive_signatures(
+    catalog: EquipmentCatalog,
+    requirements: tuple[SkillRequirement, ...],
+) -> set[BuildSignature]:
+    armor_by_part = [
+        tuple(piece for piece in catalog.armor if piece.part is part)
+        for part in ArmorPart
+    ]
+    armor_decorations = tuple(
+        item for item in catalog.decorations if item.slot_type is SlotType.ARMOR
+    )
+    maximums = {skill.id: skill.max_level for skill in catalog.skills}
+    result: set[BuildSignature] = set()
+    for armor_choice in product(*armor_by_part):
+        for charm in catalog.charms:
+            owners = (*armor_choice, charm)
+            slots = [
+                (owner.id, index, level)
+                for owner in owners
+                for index, level in enumerate(owner.slots)
+            ]
+            slot_options = [
+                (None,)
+                + tuple(
+                    decoration
+                    for decoration in armor_decorations
+                    if decoration.required_slot_level <= level
+                )
+                for _, _, level in slots
+            ]
+            for chosen_decorations in product(*slot_options):
+                levels: dict[str, int] = {}
+                for item in owners:
+                    for skill_id, level in item.skills.items():
+                        levels[skill_id] = levels.get(skill_id, 0) + level
+                placements: list[tuple[str, int, str]] = []
+                for (owner_id, index, _), decoration in zip(
+                    slots, chosen_decorations, strict=True
+                ):
+                    if decoration is None:
+                        continue
+                    placements.append((owner_id, index, decoration.id))
+                    for skill_id, level in decoration.skills.items():
+                        levels[skill_id] = levels.get(skill_id, 0) + level
+                if not requirements_satisfied(levels, requirements, maximums):
+                    continue
+                result.add(
+                    (
+                        tuple(
+                            sorted(
+                                (piece.part.value, piece.id) for piece in armor_choice
+                            )
+                        ),
+                        charm.id,
+                        tuple(sorted(placements)),
+                    )
+                )
+    return result
 
 
 class FeasibilitySolverTests(unittest.TestCase):
@@ -152,6 +261,87 @@ class FeasibilitySolverTests(unittest.TestCase):
         self.assertEqual(result.status, SolveStatus.ERROR)
         self.assertIsNone(result.build)
         self.assertIn("optimization failed", result.message or "")
+
+
+class FeasibleBuildEnumerationTests(unittest.TestCase):
+    def test_matches_independent_exhaustive_search_for_requirement_modes(self) -> None:
+        catalog = make_tiny_catalog()
+        scenarios = {
+            "minimum": (
+                SkillRequirement("skill:attack", RequirementKind.MINIMUM, 2),
+            ),
+            "exact below cap": (
+                SkillRequirement("skill:critical", RequirementKind.EXACT, 1),
+            ),
+            "exact at cap": (
+                SkillRequirement("skill:attack", RequirementKind.EXACT, 3),
+            ),
+            "forbidden": (
+                SkillRequirement("skill:attack", RequirementKind.FORBIDDEN),
+            ),
+        }
+
+        for name, requirements in scenarios.items():
+            with self.subTest(name=name):
+                result = enumerate_feasible_builds(catalog, requirements)
+
+                self.assertEqual(result.status, SolveStatus.FEASIBLE)
+                self.assertEqual(
+                    {build_signature(build) for build in result.builds},
+                    exhaustive_signatures(catalog, requirements),
+                )
+
+    def test_limit_stops_after_requested_number_of_builds(self) -> None:
+        result = enumerate_feasible_builds(make_tiny_catalog(), (), limit=1)
+
+        self.assertEqual(result.status, SolveStatus.FEASIBLE)
+        self.assertEqual(len(result.builds), 1)
+
+    def test_rejects_non_positive_limit(self) -> None:
+        with self.assertRaisesRegex(EquipmentInputError, "limit"):
+            enumerate_feasible_builds(make_tiny_catalog(), (), limit=0)
+
+    def test_infeasible_catalog_returns_no_builds(self) -> None:
+        catalog = replace(make_tiny_catalog(), charms=())
+
+        result = enumerate_feasible_builds(catalog, ())
+
+        self.assertEqual(
+            result,
+            EnumerationResult(SolveStatus.INFEASIBLE, (), "no regular charm candidate"),
+        )
+
+    def test_repeated_enumeration_returns_the_same_signature_set(self) -> None:
+        catalog = make_tiny_catalog()
+        requirements = (
+            SkillRequirement("skill:attack", RequirementKind.MINIMUM, 2),
+        )
+
+        first = enumerate_feasible_builds(catalog, requirements)
+        second = enumerate_feasible_builds(catalog, requirements)
+
+        self.assertEqual(
+            {build_signature(build) for build in first.builds},
+            {build_signature(build) for build in second.builds},
+        )
+
+    def test_optimization_error_preserves_builds_found_before_failure(self) -> None:
+        original_optimize = Model.optimize
+        calls = 0
+
+        def optimize_once_then_fail(model: Model):
+            nonlocal calls
+            calls += 1
+            if calls == 1:
+                return original_optimize(model)
+            raise RuntimeError("later optimization failed")
+
+        with patch.object(Model, "optimize", new=optimize_once_then_fail):
+            result = enumerate_feasible_builds(make_tiny_catalog(), ())
+
+        self.assertEqual(result.status, SolveStatus.ERROR)
+        self.assertEqual(len(result.builds), 1)
+        self.assertIn("later optimization failed", result.message or "")
 
 
 if __name__ == "__main__":

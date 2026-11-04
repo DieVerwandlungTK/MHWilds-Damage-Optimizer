@@ -12,6 +12,7 @@ from mhwilds_optimizer.equipment_models import (
     ArmorPart,
     DecorationPlacement,
     EquipmentCatalog,
+    EquipmentInputError,
     FeasibleBuild,
     RequirementKind,
     SkillRequirement,
@@ -30,6 +31,13 @@ class SolveStatus(StrEnum):
 class SolveResult:
     status: SolveStatus
     build: FeasibleBuild | None
+    message: str | None = None
+
+
+@dataclass(frozen=True)
+class EnumerationResult:
+    status: SolveStatus
+    builds: tuple[FeasibleBuild, ...]
     message: str | None = None
 
 
@@ -234,3 +242,66 @@ def solve_feasible_build(
         None,
         f"unexpected solver status: {optimization_status}",
     )
+
+
+def enumerate_feasible_builds(
+    catalog: EquipmentCatalog,
+    requirements: Sequence[SkillRequirement],
+    *,
+    limit: int | None = None,
+) -> EnumerationResult:
+    """Enumerate distinct complete binary assignments for a small catalog."""
+    if limit is not None and (type(limit) is not int or limit <= 0):
+        raise EquipmentInputError("limit must be a positive integer or None")
+    validated_requirements = validate_requirements(catalog, requirements)
+    precheck_message = _candidate_precheck(catalog)
+    if precheck_message is not None:
+        return EnumerationResult(SolveStatus.INFEASIBLE, (), precheck_message)
+    try:
+        state = _build_model(catalog, validated_requirements)
+    except Exception as error:
+        return EnumerationResult(SolveStatus.ERROR, (), f"solver error: {error}")
+
+    builds: list[FeasibleBuild] = []
+    while True:
+        try:
+            optimization_status = state.model.optimize()
+        except Exception as error:
+            return EnumerationResult(
+                SolveStatus.ERROR,
+                tuple(builds),
+                f"solver error: {error}",
+            )
+        if optimization_status in {
+            OptimizationStatus.OPTIMAL,
+            OptimizationStatus.FEASIBLE,
+        }:
+            try:
+                builds.append(_reconstruct_build(state))
+            except Exception as error:
+                return EnumerationResult(
+                    SolveStatus.ERROR,
+                    tuple(builds),
+                    f"cannot reconstruct solver result: {error}",
+                )
+            if limit is not None and len(builds) >= limit:
+                return EnumerationResult(SolveStatus.FEASIBLE, tuple(builds))
+            selected = [
+                variable for variable in state.binary_variables if _selected(variable)
+            ]
+            unselected = [
+                variable for variable in state.binary_variables if not _selected(variable)
+            ]
+            state.model += (
+                xsum(selected) - xsum(unselected) <= len(selected) - 1
+            )
+            continue
+        if optimization_status is OptimizationStatus.INFEASIBLE:
+            if builds:
+                return EnumerationResult(SolveStatus.FEASIBLE, tuple(builds))
+            return EnumerationResult(SolveStatus.INFEASIBLE, ())
+        return EnumerationResult(
+            SolveStatus.ERROR,
+            tuple(builds),
+            f"unexpected solver status: {optimization_status}",
+        )
