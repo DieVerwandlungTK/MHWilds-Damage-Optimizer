@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "game_version": "1.020.00",
+  "checked_through_version": "1.042.00.03",
+  "verification_status": "cross_checked",
+  "sources": [
+    {
+      "name": "Kuroyonhon: Dual Blades",
+      "url": "https://kuroyonhon.com/mhwilds/memo/6.php",
+      "checked_at": "2026-11-03",
+      "supports": ["motion_values", "element_modifiers", "move_boundaries"]
+    },
+    {
+      "name": "Macaron Game Memo: Dual Blades motion values",
+      "url": "https://macarongamemo.com/entry/mhwilds-dual_blades-motion",
+      "checked_at": "2026-11-03",
+      "supports": ["motion_values", "element_modifiers", "version_1.020.00_changes"]
+    },
+    {
+      "name": "Macaron Game Memo: Wilds damage formula",
+      "url": "https://macarongamemo.com/entry/mhwilds-damage_calculation",
+      "checked_at": "2026-11-03",
+      "supports": ["damage_formula", "sharpness_modifiers", "critical_modifiers"]
+    },
+    {
+      "name": "Kuroyonhon: measured mechanics",
+      "url": "https://kuroyonhon.com/mhwilds/memo/21.php",
+      "checked_at": "2026-11-03",
+      "supports": ["rounding_observations", "demon_dodge_observations"]
+    },
+    {
+      "name": "Monster Hunter Wilds official Steam news",
+      "url": "https://steamcommunity.com/app/2246340/allnews/",
+      "checked_at": "2026-11-03",
+      "supports": ["checked_through_version"]
+    }
+  ],
+  "combos": [
+    {
+      "id": "dual_blades:demon_dance_1_3",
+      "weapon_type": "dual_blades",
+      "moves": ["demon_dance_1", "demon_dance_2", "demon_dance_3"],
+      "hits": [
+        {"index": 1, "move_id": "demon_dance_1", "move_hit_index": 1, "motion_value": 18, "element_modifier": 1, "damage_type": "sever"},
+        {"index": 2, "move_id": "demon_dance_1", "move_hit_index": 2, "motion_value": 18, "element_modifier": 1, "damage_type": "sever"},
+        {"index": 3, "move_id": "demon_dance_1", "move_hit_index": 3, "motion_value": 6, "element_modifier": 0.6, "damage_type": "sever"},
+        {"index": 4, "move_id": "demon_dance_1", "move_hit_index": 4, "motion_value": 6, "element_modifier": 0.6, "damage_type": "sever"},
+        {"index": 5, "move_id": "demon_dance_1", "move_hit_index": 5, "motion_value": 10, "element_modifier": 0.6, "damage_type": "sever"},
+        {"index": 6, "move_id": "demon_dance_1", "move_hit_index": 6, "motion_value": 10, "element_modifier": 0.6, "damage_type": "sever"},
+        {"index": 7, "move_id": "demon_dance_1", "move_hit_index": 7, "motion_value": 4, "element_modifier": 0.8, "damage_type": "sever"},
+        {"index": 8, "move_id": "demon_dance_1", "move_hit_index": 8, "motion_value": 4, "element_modifier": 0.8, "damage_type": "sever"},
+        {"index": 9, "move_id": "demon_dance_1", "move_hit_index": 9, "motion_value": 20, "element_modifier": 0.8, "damage_type": "sever"},
+        {"index": 10, "move_id": "demon_dance_1", "move_hit_index": 10, "motion_value": 20, "element_modifier": 0.8, "damage_type": "sever"},
+        {"index": 11, "move_id": "demon_dance_1", "move_hit_index": 11, "motion_value": 11, "element_modifier": 0.8, "damage_type": "sever"},
+        {"index": 12, "move_id": "demon_dance_1", "move_hit_index": 12, "motion_value": 11, "element_modifier": 0.8, "damage_type": "sever"},
+        {"index": 13, "move_id": "demon_dance_2", "move_hit_index": 1, "motion_value": 16, "element_modifier": 0.6, "damage_type": "sever"},
+        {"index": 14, "move_id": "demon_dance_2", "move_hit_index": 2, "motion_value": 16, "element_modifier": 0.6, "damage_type": "sever"},
+        {"index": 15, "move_id": "demon_dance_2", "move_hit_index": 3, "motion_value": 6, "element_modifier": 0.8, "damage_type": "sever"},
+        {"index": 16, "move_id": "demon_dance_2", "move_hit_index": 4, "motion_value": 25, "element_modifier": 0.8, "damage_type": "sever"},
+        {"index": 17, "move_id": "demon_dance_3", "move_hit_index": 1, "motion_value": 22, "element_modifier": 0.6, "damage_type": "sever"},
+        {"index": 18, "move_id": "demon_dance_3", "move_hit_index": 2, "motion_value": 8, "element_modifier": 0.6, "damage_type": "sever"},
+        {"index": 19, "move_id": "demon_dance_3", "move_hit_index": 3, "motion_value": 5, "element_modifier": 0.6, "damage_type": "sever"},
+        {"index": 20, "move_id": "demon_dance_3", "move_hit_index": 4, "motion_value": 22, "element_modifier": 0.6, "damage_type": "sever"},
+        {"index": 21, "move_id": "demon_dance_3", "move_hit_index": 5, "motion_value": 5, "element_modifier": 0.8, "damage_type": "sever"},
+        {"index": 22, "move_id": "demon_dance_3", "move_hit_index": 6, "motion_value": 14, "element_modifier": 0.8, "damage_type": "sever"},
+        {"index": 23, "move_id": "demon_dance_3", "move_hit_index": 7, "motion_value": 18, "element_modifier": 0.8, "damage_type": "sever"},
+        {"index": 24, "move_id": "demon_dance_3", "move_hit_index": 8, "motion_value": 8, "element_modifier": 0.8, "damage_type": "sever"},
+        {"index": 25, "move_id": "demon_dance_3", "move_hit_index": 9, "motion_value": 18, "element_modifier": 0.8, "damage_type": "sever"},
+        {"index": 26, "move_id": "demon_dance_3", "move_hit_index": 10, "motion_value": 36, "element_modifier": 0.8, "damage_type": "sever"},
+        {"index": 27, "move_id": "demon_dance_3", "move_hit_index": 11, "motion_value": 36, "element_modifier": 0.8, "damage_type": "sever"}
+      ]
+    }
+  ]
+}
