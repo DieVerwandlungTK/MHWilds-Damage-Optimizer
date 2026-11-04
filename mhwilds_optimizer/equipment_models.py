@@ -299,6 +299,7 @@ class FeasibleBuild:
     decorations: tuple[DecorationPlacement, ...]
     granted_skill_levels: Mapping[str, int]
     effective_skill_levels: Mapping[str, int]
+    weapon_id: str | None = None
 
     def __post_init__(self) -> None:
         if not isinstance(self.armor_ids, Mapping):
@@ -310,6 +311,8 @@ class FeasibleBuild:
             _require_id(identifier, "armor_ids value")
         object.__setattr__(self, "armor_ids", MappingProxyType(armor_ids))
         _require_id(self.charm_id, "charm_id")
+        if self.weapon_id is not None:
+            _require_id(self.weapon_id, "weapon_id")
         if not isinstance(self.decorations, tuple) or any(
             not isinstance(value, DecorationPlacement) for value in self.decorations
         ):

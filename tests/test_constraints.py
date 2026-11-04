@@ -1,5 +1,6 @@
 import unittest
 from dataclasses import replace
+from decimal import Decimal
 from itertools import product
 from unittest.mock import patch
 
@@ -20,9 +21,13 @@ from mhwilds_optimizer.equipment_models import (
     EquipmentInputError,
     FeasibleBuild,
     RequirementKind,
+    SkillDefinition,
+    SkillKind,
     SkillRequirement,
     SlotType,
 )
+from mhwilds_optimizer.damage_models import Sharpness
+from mhwilds_optimizer.weapon_models import ElementType, Weapon
 from tests.equipment_fixtures import make_tiny_catalog
 
 
@@ -31,6 +36,25 @@ BuildSignature = tuple[
     str,
     tuple[tuple[str, int, str], ...],
 ]
+
+
+def manual_weapon(
+    *,
+    identifier: str = "weapon:test",
+    skills: dict[str, int] | None = None,
+    slots: tuple[int, ...] = (),
+) -> Weapon:
+    return Weapon(
+        id=identifier,
+        name="Test Blades",
+        raw=Decimal("200"),
+        element_type=ElementType.NONE,
+        element=Decimal("0"),
+        affinity_percent=Decimal("0"),
+        sharpness=Sharpness.WHITE,
+        slots=slots,
+        skills=skills or {},
+    )
 
 
 def with_bonus_tags(
@@ -170,6 +194,103 @@ def exhaustive_signatures(
 
 
 class FeasibilitySolverTests(unittest.TestCase):
+    def test_explicit_absent_weapon_preserves_existing_solver_behavior(self) -> None:
+        result = solve_feasible_build(make_tiny_catalog(), (), weapon=None)
+        enumerated = enumerate_feasible_builds(
+            make_tiny_catalog(), (), limit=1, weapon=None
+        )
+
+        self.assertEqual(result.status, SolveStatus.FEASIBLE)
+        assert result.build is not None
+        self.assertIsNone(result.build.weapon_id)
+        self.assertEqual(enumerated.status, SolveStatus.FEASIBLE)
+        self.assertEqual(len(enumerated.builds), 1)
+        self.assertIsNone(enumerated.builds[0].weapon_id)
+
+    def test_fixed_weapon_skill_participates_in_all_requirement_modes(self) -> None:
+        catalog = make_tiny_catalog()
+        weapon = manual_weapon(skills={"skill:weapon": 1})
+
+        minimum = solve_feasible_build(
+            catalog,
+            (SkillRequirement("skill:weapon", RequirementKind.MINIMUM, 1),),
+            weapon=weapon,
+        )
+        exact = solve_feasible_build(
+            catalog,
+            (SkillRequirement("skill:weapon", RequirementKind.EXACT, 1),),
+            weapon=weapon,
+        )
+        forbidden = solve_feasible_build(
+            catalog,
+            (SkillRequirement("skill:weapon", RequirementKind.FORBIDDEN),),
+            weapon=weapon,
+        )
+
+        self.assertEqual(minimum.status, SolveStatus.FEASIBLE)
+        self.assertEqual(exact.status, SolveStatus.FEASIBLE)
+        self.assertEqual(forbidden.status, SolveStatus.INFEASIBLE)
+        assert minimum.build is not None
+        self.assertEqual(minimum.build.weapon_id, "weapon:test")
+        self.assertEqual(minimum.build.granted_skill_levels["skill:weapon"], 1)
+        self.assertEqual(minimum.build.effective_skill_levels["skill:weapon"], 1)
+
+    def test_fixed_weapon_skill_changes_exact_below_the_maximum(self) -> None:
+        catalog = make_tiny_catalog()
+        catalog = replace(
+            catalog,
+            skills=tuple(
+                SkillDefinition(skill.id, skill.kind, 2)
+                if skill.id == "skill:weapon"
+                else skill
+                for skill in catalog.skills
+            ),
+        )
+
+        exact = SkillRequirement("skill:weapon", RequirementKind.EXACT, 1)
+        matching = solve_feasible_build(
+            catalog,
+            (exact,),
+            weapon=manual_weapon(skills={"skill:weapon": 1}),
+        )
+        exceeded = solve_feasible_build(
+            catalog,
+            (exact,),
+            weapon=manual_weapon(skills={"skill:weapon": 2}),
+        )
+
+        self.assertEqual(matching.status, SolveStatus.FEASIBLE)
+        self.assertEqual(exceeded.status, SolveStatus.INFEASIBLE)
+
+    def test_rejects_weapon_skills_inconsistent_with_the_catalog(self) -> None:
+        catalog = make_tiny_catalog()
+        cases = (
+            ("unknown", manual_weapon(skills={"skill:missing": 1})),
+            ("max_level", manual_weapon(skills={"skill:weapon": 2})),
+            ("SkillKind.WEAPON", manual_weapon(skills={"skill:attack": 1})),
+            ("SkillKind.WEAPON", manual_weapon(skills={"skill:set": 1})),
+            ("SkillKind.WEAPON", manual_weapon(skills={"skill:group": 1})),
+        )
+        for message, weapon in cases:
+            with self.subTest(message=message, skills=weapon.skills):
+                with self.assertRaisesRegex(EquipmentInputError, message):
+                    solve_feasible_build(catalog, (), weapon=weapon)
+
+    def test_rejects_a_weapon_owner_id_collision(self) -> None:
+        catalog = make_tiny_catalog()
+        for identifier in (catalog.armor[0].id, catalog.charms[0].id):
+            with self.subTest(identifier=identifier):
+                with self.assertRaisesRegex(EquipmentInputError, "owner id"):
+                    solve_feasible_build(
+                        catalog, (), weapon=manual_weapon(identifier=identifier)
+                    )
+
+    def test_rejects_a_non_weapon_before_enumeration(self) -> None:
+        with self.assertRaisesRegex(EquipmentInputError, "weapon"):
+            enumerate_feasible_builds(
+                make_tiny_catalog(), (), weapon="weapon:test"  # type: ignore[arg-type]
+            )
+
     def test_set_bonus_minimum_selects_two_tagged_pieces(self) -> None:
         catalog = with_bonus_tags(
             make_tiny_catalog(),

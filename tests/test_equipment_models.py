@@ -9,6 +9,7 @@ from mhwilds_optimizer.equipment_models import (
     Decoration,
     EquipmentCatalog,
     EquipmentInputError,
+    FeasibleBuild,
     RegularCharm,
     RequirementKind,
     SkillDefinition,
@@ -289,6 +290,33 @@ class DefinitionBoundaryTests(unittest.TestCase):
             with self.subTest(field=field):
                 with self.assertRaisesRegex(EquipmentInputError, field):
                     construct()
+
+
+class FeasibleBuildTests(unittest.TestCase):
+    def test_weapon_id_is_optional_and_accepts_a_non_empty_id(self) -> None:
+        without_weapon = FeasibleBuild(
+            armor_ids={},
+            charm_id="charm:test",
+            decorations=(),
+            granted_skill_levels={},
+            effective_skill_levels={},
+        )
+        with_weapon = replace(without_weapon, weapon_id="weapon:test")
+
+        self.assertIsNone(without_weapon.weapon_id)
+        self.assertEqual(with_weapon.weapon_id, "weapon:test")
+
+    def test_rejects_an_empty_weapon_id(self) -> None:
+        build = FeasibleBuild(
+            armor_ids={},
+            charm_id="charm:test",
+            decorations=(),
+            granted_skill_levels={},
+            effective_skill_levels={},
+        )
+
+        with self.assertRaisesRegex(EquipmentInputError, "weapon_id"):
+            replace(build, weapon_id=" ")
 
 
 if __name__ == "__main__":
