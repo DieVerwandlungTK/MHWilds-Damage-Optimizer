@@ -12,7 +12,9 @@ from mhwilds_optimizer.constraints import (
     solve_feasible_build,
 )
 from mhwilds_optimizer.equipment_models import (
+    ArmorBonus,
     ArmorPart,
+    BonusRank,
     Decoration,
     EquipmentCatalog,
     EquipmentInputError,
@@ -29,6 +31,29 @@ BuildSignature = tuple[
     str,
     tuple[tuple[str, int, str], ...],
 ]
+
+
+def with_bonus_tags(
+    catalog: EquipmentCatalog,
+    *,
+    set_ids: set[str] | None = None,
+    group_ids: set[str] | None = None,
+) -> EquipmentCatalog:
+    set_bonus = ArmorBonus(
+        "skill:set", (BonusRank(2, 1), BonusRank(4, 2))
+    )
+    group_bonus = ArmorBonus("skill:group", (BonusRank(3, 1),))
+    return replace(
+        catalog,
+        armor=tuple(
+            replace(
+                piece,
+                set_bonus=set_bonus if piece.id in (set_ids or ()) else None,
+                group_bonus=group_bonus if piece.id in (group_ids or ()) else None,
+            )
+            for piece in catalog.armor
+        ),
+    )
 
 
 def build_signature(build: FeasibleBuild) -> BuildSignature:
@@ -100,6 +125,25 @@ def exhaustive_signatures(
                 for item in owners:
                     for skill_id, level in item.skills.items():
                         levels[skill_id] = levels.get(skill_id, 0) + level
+                bonus_counts: dict[
+                    tuple[str, str], tuple[tuple[BonusRank, ...], int]
+                ] = {}
+                for piece in armor_choice:
+                    for kind, bonus in (
+                        ("set", piece.set_bonus),
+                        ("group", piece.group_bonus),
+                    ):
+                        if bonus is None:
+                            continue
+                        key = (kind, bonus.skill_id)
+                        ranks, count = bonus_counts.get(key, (bonus.ranks, 0))
+                        bonus_counts[key] = (ranks, count + 1)
+                for (_, skill_id), (ranks, count) in bonus_counts.items():
+                    reached = [
+                        rank.skill_level for rank in ranks if count >= rank.pieces
+                    ]
+                    if reached:
+                        levels[skill_id] = levels.get(skill_id, 0) + max(reached)
                 placements: list[tuple[str, int, str]] = []
                 for (owner_id, index, _), decoration in zip(
                     slots, chosen_decorations, strict=True
@@ -126,6 +170,91 @@ def exhaustive_signatures(
 
 
 class FeasibilitySolverTests(unittest.TestCase):
+    def test_set_bonus_minimum_selects_two_tagged_pieces(self) -> None:
+        catalog = with_bonus_tags(
+            make_tiny_catalog(),
+            set_ids={"armor:offense:head", "armor:base:chest"},
+        )
+
+        result = solve_feasible_build(
+            catalog,
+            (SkillRequirement("skill:set", RequirementKind.MINIMUM, 1),),
+        )
+
+        self.assertEqual(result.status, SolveStatus.FEASIBLE)
+        assert result.build is not None
+        self.assertEqual(
+            result.build.armor_ids[ArmorPart.HEAD], "armor:offense:head"
+        )
+        self.assertEqual(result.build.granted_skill_levels["skill:set"], 1)
+
+    def test_set_bonus_does_not_activate_below_its_threshold(self) -> None:
+        catalog = with_bonus_tags(
+            make_tiny_catalog(), set_ids={"armor:base:chest"}
+        )
+
+        result = solve_feasible_build(
+            catalog,
+            (SkillRequirement("skill:set", RequirementKind.MINIMUM, 1),),
+        )
+
+        self.assertEqual(result.status, SolveStatus.INFEASIBLE)
+
+    def test_unavoidable_set_bonus_makes_forbidden_infeasible(self) -> None:
+        catalog = with_bonus_tags(
+            make_tiny_catalog(),
+            set_ids={
+                "armor:offense:head",
+                "armor:critical:head",
+                "armor:base:chest",
+            },
+        )
+
+        result = solve_feasible_build(
+            catalog,
+            (SkillRequirement("skill:set", RequirementKind.FORBIDDEN),),
+        )
+
+        self.assertEqual(result.status, SolveStatus.INFEASIBLE)
+
+    def test_exact_set_bonus_distinguishes_first_and_second_rank(self) -> None:
+        two_tagged = with_bonus_tags(
+            make_tiny_catalog(),
+            set_ids={
+                "armor:offense:head",
+                "armor:critical:head",
+                "armor:base:chest",
+            },
+        )
+        all_tagged = with_bonus_tags(
+            make_tiny_catalog(),
+            set_ids={piece.id for piece in make_tiny_catalog().armor},
+        )
+
+        first_rank = solve_feasible_build(
+            two_tagged,
+            (SkillRequirement("skill:set", RequirementKind.EXACT, 1),),
+        )
+        missing_second_rank = solve_feasible_build(
+            two_tagged,
+            (SkillRequirement("skill:set", RequirementKind.EXACT, 2),),
+        )
+        exceeded_first_rank = solve_feasible_build(
+            all_tagged,
+            (SkillRequirement("skill:set", RequirementKind.EXACT, 1),),
+        )
+        second_rank = solve_feasible_build(
+            all_tagged,
+            (SkillRequirement("skill:set", RequirementKind.EXACT, 2),),
+        )
+
+        self.assertEqual(first_rank.status, SolveStatus.FEASIBLE)
+        self.assertEqual(missing_second_rank.status, SolveStatus.INFEASIBLE)
+        self.assertEqual(exceeded_first_rank.status, SolveStatus.INFEASIBLE)
+        self.assertEqual(second_rank.status, SolveStatus.FEASIBLE)
+        assert second_rank.build is not None
+        self.assertEqual(second_rank.build.granted_skill_levels["skill:set"], 2)
+
     def test_reconstructs_the_unique_legal_build_and_capped_skill_levels(self) -> None:
         catalog = make_tiny_catalog()
         catalog = replace(catalog, charms=(catalog.charms[0],))
@@ -264,6 +393,87 @@ class FeasibilitySolverTests(unittest.TestCase):
 
 
 class FeasibleBuildEnumerationTests(unittest.TestCase):
+    def test_bonus_requirements_match_independent_exhaustive_search(self) -> None:
+        ranked_catalog = with_bonus_tags(
+            make_tiny_catalog(),
+            set_ids={
+                "armor:offense:head",
+                "armor:base:chest",
+                "armor:base:arms",
+                "armor:base:waist",
+            },
+            group_ids={
+                "armor:offense:head",
+                "armor:base:chest",
+                "armor:base:legs",
+            },
+        )
+        optional_catalog = with_bonus_tags(
+            make_tiny_catalog(),
+            set_ids={"armor:offense:head", "armor:base:chest"},
+        )
+        scenarios = (
+            (
+                "set minimum",
+                ranked_catalog,
+                (SkillRequirement("skill:set", RequirementKind.MINIMUM, 1),),
+            ),
+            (
+                "set exact first rank",
+                ranked_catalog,
+                (SkillRequirement("skill:set", RequirementKind.EXACT, 1),),
+            ),
+            (
+                "set exact second rank",
+                ranked_catalog,
+                (SkillRequirement("skill:set", RequirementKind.EXACT, 2),),
+            ),
+            (
+                "group across series",
+                ranked_catalog,
+                (SkillRequirement("skill:group", RequirementKind.MINIMUM, 1),),
+            ),
+            (
+                "set forbidden",
+                optional_catalog,
+                (SkillRequirement("skill:set", RequirementKind.FORBIDDEN),),
+            ),
+        )
+
+        for name, catalog, requirements in scenarios:
+            with self.subTest(name=name):
+                expected = exhaustive_signatures(catalog, requirements)
+                result = enumerate_feasible_builds(catalog, requirements)
+
+                self.assertEqual(
+                    result.status,
+                    SolveStatus.FEASIBLE if expected else SolveStatus.INFEASIBLE,
+                )
+                self.assertEqual(
+                    {build_signature(build) for build in result.builds}, expected
+                )
+
+    def test_bonus_helpers_do_not_create_duplicate_physical_builds(self) -> None:
+        catalog = with_bonus_tags(
+            make_tiny_catalog(),
+            set_ids={piece.id for piece in make_tiny_catalog().armor},
+            group_ids={
+                "armor:offense:head",
+                "armor:base:chest",
+                "armor:base:arms",
+            },
+        )
+        requirements = (
+            SkillRequirement("skill:set", RequirementKind.MINIMUM, 1),
+        )
+
+        result = enumerate_feasible_builds(catalog, requirements)
+        signatures = [build_signature(build) for build in result.builds]
+
+        self.assertEqual(result.status, SolveStatus.FEASIBLE)
+        self.assertEqual(len(signatures), len(set(signatures)))
+        self.assertEqual(set(signatures), exhaustive_signatures(catalog, requirements))
+
     def test_matches_independent_exhaustive_search_for_requirement_modes(self) -> None:
         catalog = make_tiny_catalog()
         scenarios = {
