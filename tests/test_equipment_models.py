@@ -2,8 +2,10 @@ import unittest
 from dataclasses import replace
 
 from mhwilds_optimizer.equipment_models import (
+    ArmorBonus,
     ArmorPart,
     ArmorPiece,
+    BonusRank,
     Decoration,
     EquipmentCatalog,
     EquipmentInputError,
@@ -16,6 +18,46 @@ from mhwilds_optimizer.equipment_models import (
     validate_requirements,
 )
 from tests.equipment_fixtures import make_tiny_catalog
+
+
+class ArmorBonusTests(unittest.TestCase):
+    def test_sorts_and_deduplicates_immutable_ranks(self) -> None:
+        bonus = ArmorBonus(
+            "skill:set",
+            (
+                BonusRank(4, 2),
+                BonusRank(2, 1),
+                BonusRank(2, 1),
+            ),
+        )
+
+        self.assertEqual(bonus.ranks, (BonusRank(2, 1), BonusRank(4, 2)))
+        with self.assertRaises(AttributeError):
+            bonus.ranks[0].pieces = 3  # type: ignore[misc]
+
+    def test_rejects_invalid_rank_definitions(self) -> None:
+        cases = (
+            ("non-empty", lambda: ArmorBonus("skill:set", ())),
+            ("pieces", lambda: BonusRank(0, 1)),
+            ("skill_level", lambda: BonusRank(2, 0)),
+            (
+                "strictly increasing",
+                lambda: ArmorBonus(
+                    "skill:set", (BonusRank(2, 1), BonusRank(2, 2))
+                ),
+            ),
+            (
+                "strictly increasing",
+                lambda: ArmorBonus(
+                    "skill:set", (BonusRank(2, 2), BonusRank(4, 1))
+                ),
+            ),
+        )
+
+        for message, construct in cases:
+            with self.subTest(message=message):
+                with self.assertRaisesRegex(EquipmentInputError, message):
+                    construct()
 
 
 class EquipmentCatalogTests(unittest.TestCase):
@@ -34,6 +76,70 @@ class EquipmentCatalogTests(unittest.TestCase):
         self.assertEqual(len(catalog.armor), 6)
         self.assertEqual(catalog.armor[0].part, ArmorPart.HEAD)
         self.assertEqual(catalog.decorations[0].slot_type, SlotType.ARMOR)
+
+    def test_accepts_shared_consistent_bonus_definitions(self) -> None:
+        catalog = make_tiny_catalog()
+        bonus = ArmorBonus(
+            "skill:set", (BonusRank(2, 1), BonusRank(4, 2))
+        )
+        armor = (
+            replace(catalog.armor[0], set_bonus=bonus),
+            replace(catalog.armor[1], set_bonus=bonus),
+            *catalog.armor[2:],
+        )
+
+        result = replace(catalog, armor=armor)
+
+        self.assertEqual(result.armor[0].set_bonus, result.armor[1].set_bonus)
+
+    def test_rejects_invalid_bonus_skill_references_and_definitions(self) -> None:
+        catalog = make_tiny_catalog()
+        cases = (
+            (
+                "unknown",
+                replace(
+                    catalog.armor[0],
+                    set_bonus=ArmorBonus("skill:missing", (BonusRank(2, 1),)),
+                ),
+            ),
+            (
+                "SkillKind.SET",
+                replace(
+                    catalog.armor[0],
+                    set_bonus=ArmorBonus("skill:attack", (BonusRank(2, 1),)),
+                ),
+            ),
+            (
+                "SkillKind.GROUP",
+                replace(
+                    catalog.armor[0],
+                    group_bonus=ArmorBonus("skill:set", (BonusRank(2, 1),)),
+                ),
+            ),
+            (
+                "max_level",
+                replace(
+                    catalog.armor[0],
+                    set_bonus=ArmorBonus("skill:set", (BonusRank(2, 3),)),
+                ),
+            ),
+        )
+
+        for message, bad_piece in cases:
+            with self.subTest(message=message):
+                with self.assertRaisesRegex(EquipmentInputError, message):
+                    replace(catalog, armor=(bad_piece, *catalog.armor[1:]))
+
+        first = replace(
+            catalog.armor[0],
+            set_bonus=ArmorBonus("skill:set", (BonusRank(2, 1),)),
+        )
+        second = replace(
+            catalog.armor[1],
+            set_bonus=ArmorBonus("skill:set", (BonusRank(3, 1),)),
+        )
+        with self.assertRaisesRegex(EquipmentInputError, "inconsistent"):
+            replace(catalog, armor=(first, second, *catalog.armor[2:]))
 
     def test_rejects_duplicate_ids_across_each_candidate_kind(self) -> None:
         catalog = make_tiny_catalog()

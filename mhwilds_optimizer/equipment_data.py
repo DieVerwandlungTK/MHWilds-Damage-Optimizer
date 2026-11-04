@@ -9,8 +9,10 @@ from pathlib import Path
 from typing import Any
 
 from mhwilds_optimizer.equipment_models import (
+    ArmorBonus,
     ArmorPart,
     ArmorPiece,
+    BonusRank,
     Decoration,
     EquipmentCatalog,
     EquipmentInputError,
@@ -74,6 +76,36 @@ def _slots(record: Mapping[str, Any], context: str) -> tuple[int, ...]:
     if not isinstance(value, list):
         raise EquipmentDataError(f"{context}.slots: expected a list")
     return tuple(value)
+
+
+def _bonus(
+    record: Mapping[str, Any], field: str, context: str
+) -> ArmorBonus | None:
+    value = record.get(field)
+    if value is None:
+        return None
+    bonus_record = _record(value, f"{context}.{field}")
+    skill_id = bonus_record.get("skill_id")
+    if not isinstance(skill_id, str) or not skill_id.strip():
+        raise EquipmentDataError(
+            f"{context}.{field}.skill_id: expected a non-empty string"
+        )
+    rank_values = bonus_record.get("ranks")
+    if not isinstance(rank_values, list):
+        raise EquipmentDataError(f"{context}.{field}.ranks: expected a list")
+    try:
+        ranks: list[BonusRank] = []
+        for index, rank_value in enumerate(rank_values):
+            rank = _record(rank_value, f"{context}.{field}.ranks[{index}]")
+            ranks.append(
+                BonusRank(
+                    rank.get("pieces"),  # type: ignore[arg-type]
+                    rank.get("skill_level"),  # type: ignore[arg-type]
+                )
+            )
+        return ArmorBonus(skill_id, tuple(ranks))
+    except EquipmentInputError as error:
+        raise EquipmentDataError(f"{context}.{field}: {error}") from error
 
 
 def _enum(enum_type, value: object, context: str):
@@ -159,6 +191,8 @@ def _armor(records: list[object]) -> tuple[ArmorPiece, ...]:
                 _enum(ArmorPart, record.get("part"), f"{context}.part"),
                 _mapping(record, "skills", context),
                 _slots(record, context),
+                _bonus(record, "set_bonus", context),
+                _bonus(record, "group_bonus", context),
             )
         )
     return tuple(result)

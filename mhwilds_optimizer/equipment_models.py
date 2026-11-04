@@ -84,11 +84,48 @@ class SkillDefinition:
 
 
 @dataclass(frozen=True)
+class BonusRank:
+    pieces: int
+    skill_level: int
+
+    def __post_init__(self) -> None:
+        _require_positive_integer(self.pieces, "pieces")
+        _require_positive_integer(self.skill_level, "skill_level")
+
+
+@dataclass(frozen=True)
+class ArmorBonus:
+    skill_id: str
+    ranks: tuple[BonusRank, ...]
+
+    def __post_init__(self) -> None:
+        _require_id(self.skill_id, "bonus skill_id")
+        if not isinstance(self.ranks, tuple) or any(
+            not isinstance(rank, BonusRank) for rank in self.ranks
+        ):
+            raise EquipmentInputError("bonus ranks must be a tuple of BonusRank values")
+        ranks = tuple(sorted(set(self.ranks), key=lambda rank: (rank.pieces, rank.skill_level)))
+        if not ranks:
+            raise EquipmentInputError("bonus ranks must be non-empty")
+        if any(
+            previous.pieces >= current.pieces
+            or previous.skill_level >= current.skill_level
+            for previous, current in zip(ranks, ranks[1:])
+        ):
+            raise EquipmentInputError(
+                "bonus pieces and skill levels must be strictly increasing"
+            )
+        object.__setattr__(self, "ranks", ranks)
+
+
+@dataclass(frozen=True)
 class ArmorPiece:
     id: str
     part: ArmorPart
     skills: Mapping[str, int]
     slots: tuple[int, ...]
+    set_bonus: ArmorBonus | None = None
+    group_bonus: ArmorBonus | None = None
 
     def __post_init__(self) -> None:
         _require_id(self.id, "armor id")
@@ -96,6 +133,12 @@ class ArmorPiece:
             raise EquipmentInputError("armor part must be an ArmorPart")
         object.__setattr__(self, "skills", _freeze_skills(self.skills, "armor skills"))
         object.__setattr__(self, "slots", _validate_slots(self.slots, "armor slots"))
+        if self.set_bonus is not None and not isinstance(self.set_bonus, ArmorBonus):
+            raise EquipmentInputError("set_bonus must be an ArmorBonus or None")
+        if self.group_bonus is not None and not isinstance(
+            self.group_bonus, ArmorBonus
+        ):
+            raise EquipmentInputError("group_bonus must be an ArmorBonus or None")
 
 
 @dataclass(frozen=True)
@@ -176,7 +219,11 @@ class EquipmentCatalog:
                 f"owner id shared by armor and charm: {identifier}"
             )
 
-        skill_levels = {skill.id: skill.max_level for skill in self.skills}
+        skill_definitions = {skill.id: skill for skill in self.skills}
+        skill_levels = {
+            identifier: skill.max_level
+            for identifier, skill in skill_definitions.items()
+        }
         equipment = (*self.armor, *self.decorations, *self.charms)
         for candidate in equipment:
             for skill_id, level in candidate.skills.items():
@@ -187,6 +234,34 @@ class EquipmentCatalog:
                 if level > skill_levels[skill_id]:
                     raise EquipmentInputError(
                         f"{candidate.id}.{skill_id} exceeds max_level"
+                    )
+
+        bonus_definitions: dict[tuple[SkillKind, str], ArmorBonus] = {}
+        for piece in self.armor:
+            for kind, bonus in (
+                (SkillKind.SET, piece.set_bonus),
+                (SkillKind.GROUP, piece.group_bonus),
+            ):
+                if bonus is None:
+                    continue
+                skill = skill_definitions.get(bonus.skill_id)
+                if skill is None:
+                    raise EquipmentInputError(
+                        f"{piece.id} references unknown bonus skill {bonus.skill_id}"
+                    )
+                if skill.kind is not kind:
+                    raise EquipmentInputError(
+                        f"{piece.id}.{bonus.skill_id} must reference SkillKind.{kind.name}"
+                    )
+                if bonus.ranks[-1].skill_level > skill.max_level:
+                    raise EquipmentInputError(
+                        f"{piece.id}.{bonus.skill_id} exceeds max_level"
+                    )
+                key = (kind, bonus.skill_id)
+                previous = bonus_definitions.setdefault(key, bonus)
+                if previous != bonus:
+                    raise EquipmentInputError(
+                        f"inconsistent {kind.value} bonus definition for {bonus.skill_id}"
                     )
 
 

@@ -8,7 +8,7 @@ from mhwilds_optimizer.equipment_data import (
     EquipmentDataError,
     load_equipment_catalog,
 )
-from mhwilds_optimizer.equipment_models import ArmorPart, SkillKind, SlotType
+from mhwilds_optimizer.equipment_models import ArmorPart, BonusRank, SkillKind, SlotType
 
 
 def json_bytes(value: object) -> bytes:
@@ -33,6 +33,25 @@ def dataset_payloads() -> dict[str, object]:
             "max_level": 1,
             "ranks": [{"level": 1}],
         },
+        {
+            "id": "skill:set",
+            "source_id": 3,
+            "names": {"ja": "シリーズ", "en": "Set Bonus"},
+            "kind": "set",
+            "max_level": 2,
+            "ranks": [
+                {"level": 1, "set_pieces_required": 2},
+                {"level": 2, "set_pieces_required": 4},
+            ],
+        },
+        {
+            "id": "skill:group",
+            "source_id": 4,
+            "names": {"ja": "グループ", "en": "Group Bonus"},
+            "kind": "group",
+            "max_level": 1,
+            "ranks": [{"level": 1, "set_pieces_required": 3}],
+        },
     ]
     armor = [
         {
@@ -46,9 +65,16 @@ def dataset_payloads() -> dict[str, object]:
             "skills": {"skill:attack": 1},
             "set_bonus": {
                 "skill_id": "skill:set",
-                "ranks": [{"pieces": 2, "skill_level": 1}],
+                "ranks": [
+                    {"pieces": 2, "skill_level": 1},
+                    {"pieces": 2, "skill_level": 1},
+                    {"pieces": 4, "skill_level": 2},
+                ],
             },
-            "group_bonus": None,
+            "group_bonus": {
+                "skill_id": "skill:group",
+                "ranks": [{"pieces": 3, "skill_level": 1}],
+            },
         }
     ]
     decorations = [
@@ -149,12 +175,21 @@ class EquipmentDataTests(unittest.TestCase):
             [
                 ("skill:attack", SkillKind.ARMOR, 3),
                 ("skill:weapon", SkillKind.WEAPON, 1),
+                ("skill:set", SkillKind.SET, 2),
+                ("skill:group", SkillKind.GROUP, 1),
             ],
         )
         self.assertEqual(catalog.armor[0].id, "armor:10:head")
         self.assertEqual(catalog.armor[0].part, ArmorPart.HEAD)
         self.assertEqual(catalog.armor[0].slots, (3, 1))
         self.assertEqual(catalog.armor[0].skills, {"skill:attack": 1})
+        self.assertEqual(catalog.armor[0].set_bonus.skill_id, "skill:set")
+        self.assertEqual(
+            catalog.armor[0].set_bonus.ranks,
+            (BonusRank(2, 1), BonusRank(4, 2)),
+        )
+        self.assertEqual(catalog.armor[0].group_bonus.skill_id, "skill:group")
+        self.assertEqual(catalog.armor[0].group_bonus.ranks, (BonusRank(3, 1),))
         self.assertEqual(
             [decoration.slot_type for decoration in catalog.decorations],
             [SlotType.ARMOR, SlotType.WEAPON],
@@ -210,6 +245,20 @@ class EquipmentDataTests(unittest.TestCase):
 
         with self.assertRaisesRegex(
             EquipmentDataError, "armor:10:head.*skill:missing"
+        ):
+            load_equipment_catalog(self.root)
+
+    def test_rejects_conflicting_bonus_ranks_with_record_context(self) -> None:
+        payloads = dataset_payloads()
+        armor = payloads["armor.json"]
+        armor[0]["set_bonus"]["ranks"] = [  # type: ignore[index]
+            {"pieces": 2, "skill_level": 1},
+            {"pieces": 2, "skill_level": 2},
+        ]
+        write_dataset(self.root, payloads)
+
+        with self.assertRaisesRegex(
+            EquipmentDataError, r"armor\.json\[0\].*armor:10:head"
         ):
             load_equipment_catalog(self.root)
 
