@@ -14,6 +14,7 @@ from typing import Any
 from mhwilds_optimizer.combo_data import SourceReference, VerificationStatus
 from mhwilds_optimizer.equipment_models import EquipmentCatalog, SkillKind
 from mhwilds_optimizer.skill_effect_models import (
+    CONDITION_KEYS,
     ConditionOperator,
     EffectClause,
     EffectCondition,
@@ -39,28 +40,6 @@ _TOP_LEVEL_FIELDS = {
     "skills",
     "unsupported",
     "non_damage",
-}
-_CONDITION_KEYS = {
-    "monster_enraged",
-    "target_weak",
-    "target_wounded",
-    "sharpness",
-    "weapon_element",
-    "full_health",
-    "health_at_most_40_percent",
-    "red_health",
-    "maximum_stamina",
-    "virus_overcome",
-    "target_poisoned_or_paralyzed",
-    "hunter_statused",
-    "after_dodge",
-    "after_damage",
-    "after_bind_recovery",
-    "after_power_clash_or_offset",
-    "after_eating",
-    "wet_or_bubbled",
-    "burst_stage",
-    "burst_active",
 }
 _SKILL_ID = re.compile(r"skill:-?\d+\Z")
 
@@ -155,7 +134,7 @@ def _source(value: object, index: int) -> SourceReference:
 def _condition(value: object, context: str) -> EffectCondition:
     record = _record(value, context)
     key = _text(record.get("key"), f"{context}.key")
-    if key not in _CONDITION_KEYS:
+    if key not in CONDITION_KEYS:
         raise SkillEffectDataError(f"{context}.key has an unsupported value {key!r}")
     condition_value = record.get("value")
     if not isinstance(condition_value, (bool, str)):

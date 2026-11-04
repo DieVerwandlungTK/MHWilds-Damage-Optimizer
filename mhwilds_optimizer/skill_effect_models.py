@@ -11,6 +11,32 @@ from mhwilds_optimizer.combo_data import SourceReference, VerificationStatus
 from mhwilds_optimizer.equipment_models import SkillKind
 
 
+CONDITION_KEYS = frozenset(
+    {
+        "monster_enraged",
+        "target_weak",
+        "target_wounded",
+        "sharpness",
+        "weapon_element",
+        "full_health",
+        "health_at_most_40_percent",
+        "red_health",
+        "maximum_stamina",
+        "virus_overcome",
+        "target_poisoned_or_paralyzed",
+        "hunter_statused",
+        "after_dodge",
+        "after_damage",
+        "after_bind_recovery",
+        "after_power_clash_or_offset",
+        "after_eating",
+        "wet_or_bubbled",
+        "burst_stage",
+        "burst_active",
+    }
+)
+
+
 class ModifierKind(StrEnum):
     RAW_FLAT = "raw_flat"
     RAW_MULTIPLIER = "raw_multiplier"
