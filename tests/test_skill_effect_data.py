@@ -2,6 +2,7 @@ import copy
 import json
 import tempfile
 import unittest
+from dataclasses import replace
 from decimal import Decimal
 from pathlib import Path
 
@@ -281,6 +282,73 @@ class SkillEffectDataTests(unittest.TestCase):
             charms=(),
         )
         self.assert_payload_error(valid_payload(), "unknown skill:2", catalog=unknown)
+
+
+class BundledSkillEffectDataTests(unittest.TestCase):
+    def test_bundled_table_classifies_the_fixed_skill_snapshot(self) -> None:
+        table = load_skill_effect_table()
+
+        all_ids = set(table.skills) | set(table.unsupported) | set(table.non_damage)
+        self.assertEqual(table.game_version, "1.042.00.03")
+        self.assertEqual(len(all_ids), 179)
+        self.assertEqual(
+            len(all_ids),
+            len(table.skills) + len(table.unsupported) + len(table.non_damage),
+        )
+        self.assertIn("skill:1", table.skills)
+        self.assertIn("skill:565867136", table.unsupported)
+        self.assertIn("skill:1077686656", table.non_damage)
+
+        for effect in table.skills.values():
+            self.assertEqual(tuple(effect.ranks), tuple(range(1, effect.max_level + 1)))
+
+    def test_bundled_table_cross_validates_declared_identity(self) -> None:
+        table = load_skill_effect_table()
+        entries = {
+            entry.id: entry
+            for entry in (
+                *table.skills.values(),
+                *table.unsupported.values(),
+                *table.non_damage.values(),
+            )
+        }
+        definitions = [
+            SkillDefinition(entry.id, entry.kind, entry.max_level)
+            for entry in entries.values()
+        ]
+        attack_index = next(
+            index
+            for index, definition in enumerate(definitions)
+            if definition.id == "skill:1"
+        )
+        definitions[attack_index] = replace(
+            definitions[attack_index],
+            kind=SkillKind.ARMOR,
+        )
+        mismatched = EquipmentCatalog(
+            skills=tuple(definitions),
+            armor=(),
+            decorations=(),
+            charms=(),
+        )
+
+        with self.assertRaisesRegex(SkillEffectDataError, "skill:1 kind mismatch"):
+            load_skill_effect_table(mismatched)
+
+    def test_bundled_table_does_not_copy_localized_game_text(self) -> None:
+        path = (
+            Path(__file__).parents[1]
+            / "mhwilds_optimizer"
+            / "data"
+            / "skill_effects"
+            / "1.042.00.03.json"
+        )
+        payload = json.loads(path.read_text(encoding="utf-8"))
+
+        for category in ("skills", "unsupported", "non_damage"):
+            for entry in payload[category]:
+                self.assertNotIn("names", entry)
+                self.assertNotIn("descriptions", entry)
 
 
 if __name__ == "__main__":

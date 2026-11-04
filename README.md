@@ -1,6 +1,6 @@
 # mhwilds-sim
 
-Monster Hunter Wilds のコンボ期待ダメージを最大化する装備構成を探索する、Python CLI プロジェクトです。現在はデータ取得・ダメージ計算と、装備構成の実現可能性判定まで実装しています。
+Monster Hunter Wilds のコンボ期待ダメージを最大化する装備構成を探索する、Python CLI プロジェクトです。現在はデータ取得、装備構成の実現可能性判定、火力スキル解決、ダメージ計算まで実装しています。
 
 ## Python環境
 
@@ -102,11 +102,60 @@ print(result.status, result.build, result.message)
 - `infeasible`: 候補集合では要求を満たす構成が存在しない。
 - `error`: ソルバーの初期化・実行・解の復元に失敗した。`message` に原因を含みます。
 
-現段階では火力目的関数、Top N、武器選択、状態異常、スキルによる武器能力値補正、シリーズ／グループスキルの具体的な戦闘効果を扱いません。武器がシリーズ／グループスキルの必要部位数へ寄与するルールも未実装です。武器値は通常武器・アーティア武器とも完成時点の値を手入力し、アーティアの生成・強化規則は検証しません。武器用装飾品は武器スロットだけ、防具用装飾品は防具・護石スロットだけに配置されます。
+現段階では火力目的関数、Top N、武器選択、状態異常を扱いません。武器がシリーズ／グループスキルの必要部位数へ寄与するルールも未実装です。武器値は通常武器・アーティア武器とも完成時点の値を手入力し、アーティアの生成・強化規則は検証しません。武器用装飾品は武器スロットだけ、防具用装飾品は防具・護石スロットだけに配置されます。
+
+## 火力スキルの解決
+
+`FeasibleBuild.effective_skill_levels` は、武器・防具・装飾品・護石・シリーズ／グループ由来のレベルを合算済みです。これをVer.1.042.00.03の組み込み効果表で解決し、既存のコンボ計算へ渡せます。
+
+```python
+from mhwilds_optimizer.combo_data import load_combo
+from mhwilds_optimizer.damage import calculate_combo_damage
+from mhwilds_optimizer.damage_models import TargetHitzones
+from mhwilds_optimizer.skill_effects import (
+    SkillConditionState,
+    SkillResolutionContext,
+    resolve_combat_stats,
+)
+
+if result.build is None:
+    raise RuntimeError("装備構成が見つかりませんでした")
+
+target = TargetHitzones(
+    sever=Decimal("60"),
+    element=Decimal("20"),
+    monster_damage_modifier=Decimal("1"),
+)
+context = SkillResolutionContext(
+    weapon=weapon,
+    target=target,
+    monster_enraged=True,
+    target_wounded=True,
+    conditions=SkillConditionState(
+        {
+            "full_health": True,
+            "maximum_stamina": True,
+        }
+    ),
+    demon_dodge_buff=False,
+)
+resolved = resolve_combat_stats(result.build, catalog, context)
+if not resolved.ranking_eligible:
+    raise RuntimeError(resolved.warnings)
+
+damage = calculate_combo_damage(load_combo(), resolved.stats, target)
+print(damage.total, resolved.audit)
+```
+
+弱点、傷口、怒り、斬れ味、武器属性はコンテキストから自動判定します。体力最大、スタミナ最大、回避成功後など、自動判定できない条件は、その条件を必要とするスキルがある場合に `SkillConditionState` へ明示してください。未指定条件を不発とはみなさず `MissingSkillConditionError` で停止します。
+
+既定のstrictモードは、値・計算方法が未検証の火力スキルや未分類スキルを含むと停止します。調査用に `strict=False` を指定すると警告付きで能力値を返しますが、`ranking_eligible` は `False` となり候補比較には使えません。非火力スキルだけが無視され、そのIDは `ignored_skill_ids` に残ります。
+
+効果表と計算結果の検証状態は `cross_checked` で、丸めなしの `continuous_approx` を対象とします。毒などの状態異常蓄積、追加ヒット、斬れ味消費、時間推移、未検証のスキル値は推測しません。
 
 ## 双剣・乱舞 I〜III のダメージ計算
 
-乱舞 I、II、III の計27ヒットを、装備探索から独立した純Python APIで連続近似できます。入力する攻撃力・属性値・会心率は、スキルやバフを解決した後の実効値です。
+乱舞 I、II、III の計27ヒットを、装備探索から独立した純Python APIで連続近似できます。入力する攻撃力・属性値・会心率は、上記リゾルバまたは呼び出し側でスキルやバフを解決した後の実効値です。
 
 ```python
 from decimal import Decimal

@@ -1,9 +1,10 @@
 import unittest
-from dataclasses import FrozenInstanceError
+from dataclasses import FrozenInstanceError, replace
 from decimal import Decimal
 from types import MappingProxyType
 
-from mhwilds_optimizer.combo_data import VerificationStatus
+from mhwilds_optimizer.combo_data import VerificationStatus, load_combo
+from mhwilds_optimizer.damage import calculate_combo_damage
 from mhwilds_optimizer.damage_models import CombatStats, Sharpness, TargetHitzones
 from mhwilds_optimizer.equipment_models import (
     EquipmentCatalog,
@@ -207,6 +208,34 @@ def test_context(*, conditions: SkillConditionState | None = None) -> SkillResol
         target_wounded=False,
         conditions=conditions or SkillConditionState(),
         demon_dodge_buff=False,
+    )
+
+
+def bundled_catalog(table: SkillEffectTable) -> EquipmentCatalog:
+    entries = (
+        *table.skills.values(),
+        *table.unsupported.values(),
+        *table.non_damage.values(),
+    )
+    return EquipmentCatalog(
+        skills=tuple(
+            SkillDefinition(entry.id, entry.kind, entry.max_level)
+            for entry in entries
+        ),
+        armor=(),
+        decorations=(),
+        charms=(),
+    )
+
+
+def bundled_build(levels: dict[str, int], weapon_id: str = "weapon:test") -> FeasibleBuild:
+    return FeasibleBuild(
+        armor_ids={},
+        charm_id="charm:none",
+        decorations=(),
+        granted_skill_levels=levels,
+        effective_skill_levels=levels,
+        weapon_id=weapon_id,
     )
 
 
@@ -699,6 +728,183 @@ class SkillResolutionPolicyTests(unittest.TestCase):
 
         with self.assertRaisesRegex(MissingSkillConditionError, "full_health"):
             SkillAggregationTests().resolve_fixture(fixture, strict=False)
+
+
+class BundledSkillResolutionTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        from mhwilds_optimizer.skill_effect_data import load_skill_effect_table
+
+        cls.table = load_skill_effect_table()
+        cls.catalog = bundled_catalog(cls.table)
+
+    def resolve(
+        self,
+        levels: dict[str, int],
+        *,
+        weapon: Weapon | None = None,
+        target: TargetHitzones | None = None,
+        enraged: bool = False,
+        wounded: bool = False,
+        conditions: SkillConditionState | None = None,
+        strict: bool = True,
+    ) -> SkillResolutionResult:
+        resolved_weapon = weapon or test_weapon()
+        return resolve_combat_stats(
+            bundled_build(levels, resolved_weapon.id),
+            self.catalog,
+            SkillResolutionContext(
+                weapon=resolved_weapon,
+                target=target or test_target(),
+                monster_enraged=enraged,
+                target_wounded=wounded,
+                conditions=conditions or SkillConditionState(),
+                demon_dodge_buff=False,
+            ),
+            strict=strict,
+        )
+
+    def test_resolves_representative_build_and_existing_combo(self) -> None:
+        weapon = replace(
+            test_weapon(),
+            affinity_percent=Decimal("0"),
+        )
+        levels = {
+            "skill:1": 4,
+            "skill:-562534336": 2,
+            "skill:-397570464": 1,
+            "skill:-1607763456": 1,
+            "skill:397306144": 3,
+        }
+
+        result = self.resolve(levels, weapon=weapon, wounded=True)
+
+        self.assertEqual(result.stats.raw, Decimal("110.00"))
+        self.assertEqual(result.stats.element, Decimal("72.00"))
+        self.assertEqual(result.stats.affinity_percent, Decimal("8"))
+        self.assertEqual(result.stats.positive_critical_modifier, Decimal("1.28"))
+        self.assertEqual(result.stats.raw_damage_modifier, Decimal("1.10"))
+        self.assertEqual(result.stats.element_damage_modifier, Decimal("1"))
+        self.assertEqual(result.stats.positive_element_critical_modifier, Decimal("1"))
+        self.assertEqual(
+            tuple(item.skill_id for item in result.audit),
+            (
+                "skill:-1607763456",
+                "skill:-397570464",
+                "skill:-397570464",
+                "skill:-562534336",
+                "skill:1",
+                "skill:397306144",
+            ),
+        )
+        self.assertIs(result.ranking_eligible, True)
+
+        combo = load_combo()
+        calculated = calculate_combo_damage(combo, result.stats, test_target())
+        expected_stats = CombatStats(
+            raw=Decimal("110"),
+            element=Decimal("72"),
+            affinity_percent=Decimal("8"),
+            positive_critical_modifier=Decimal("1.28"),
+            negative_critical_modifier=Decimal("0.75"),
+            sharpness=Sharpness.GREEN,
+            demon_dodge_buff=False,
+            raw_damage_modifier=Decimal("1.10"),
+        )
+        expected = calculate_combo_damage(combo, expected_stats, test_target())
+        self.assertEqual(calculated, expected)
+
+    def test_weakness_exploit_uses_weak_and_wounded_boundaries(self) -> None:
+        cases = (
+            ("44.9", False, Decimal("10"), ("inactive", "inactive")),
+            ("45", False, Decimal("15"), ("applied", "inactive")),
+            ("45", True, Decimal("18"), ("applied", "applied")),
+        )
+        for sever, wounded, affinity, outcomes in cases:
+            with self.subTest(sever=sever, wounded=wounded):
+                result = self.resolve(
+                    {"skill:-397570464": 1},
+                    target=test_target(sever=sever),
+                    wounded=wounded,
+                )
+                self.assertEqual(result.stats.affinity_percent, affinity)
+                self.assertEqual(
+                    tuple(item.outcome for item in result.audit),
+                    outcomes,
+                )
+
+    def test_agitator_and_element_attack_follow_automatic_state(self) -> None:
+        inactive = self.resolve({"skill:1865909632": 1})
+        active = self.resolve({"skill:1865909632": 1}, enraged=True)
+        fire = self.resolve({"skill:-562534336": 1})
+        water_weapon = replace(test_weapon(), element_type=ElementType.WATER)
+        mismatch = self.resolve(
+            {"skill:-562534336": 1},
+            weapon=water_weapon,
+        )
+
+        self.assertEqual((inactive.stats.raw, inactive.stats.affinity_percent), (Decimal("100"), Decimal("10")))
+        self.assertEqual((active.stats.raw, active.stats.affinity_percent), (Decimal("104"), Decimal("13")))
+        self.assertEqual(fire.stats.element, Decimal("60"))
+        self.assertEqual(mismatch.stats.element, Decimal("20"))
+        self.assertEqual(mismatch.audit[0].outcome, "inactive")
+
+    def test_critical_boost_and_bludgeoner_resolve_for_affinity_and_sharpness(self) -> None:
+        positive = self.resolve({"skill:-1607763456": 1})
+        negative = self.resolve(
+            {"skill:-1607763456": 1},
+            weapon=replace(test_weapon(), affinity_percent=Decimal("-20")),
+        )
+        green = self.resolve({"skill:397306144": 3})
+        level_two_green = self.resolve({"skill:397306144": 2})
+        level_two_yellow = self.resolve(
+            {"skill:397306144": 2},
+            weapon=replace(test_weapon(), sharpness=Sharpness.YELLOW),
+        )
+        blue = self.resolve(
+            {"skill:397306144": 3},
+            weapon=replace(test_weapon(), sharpness=Sharpness.BLUE),
+        )
+
+        self.assertEqual(positive.stats.positive_critical_modifier, Decimal("1.28"))
+        self.assertEqual(negative.stats.positive_critical_modifier, Decimal("1.28"))
+        self.assertEqual(green.stats.raw_damage_modifier, Decimal("1.10"))
+        self.assertEqual(level_two_green.stats.raw_damage_modifier, Decimal("1"))
+        self.assertEqual(level_two_yellow.stats.raw_damage_modifier, Decimal("1.10"))
+        self.assertEqual(blue.stats.raw_damage_modifier, Decimal("1"))
+        self.assertEqual(blue.audit[0].outcome, "inactive")
+
+    def test_explicit_and_unsupported_bundled_skills_obey_failure_policy(self) -> None:
+        with self.assertRaisesRegex(MissingSkillConditionError, "full_health"):
+            self.resolve({"skill:2106877312": 1})
+        with self.assertRaisesRegex(SkillResolutionError, "unsupported"):
+            self.resolve({"skill:565867136": 1})
+
+        exploratory = self.resolve({"skill:565867136": 1}, strict=False)
+        self.assertIs(exploratory.ranking_eligible, False)
+        self.assertTrue(any("skill:565867136" in item for item in exploratory.warnings))
+
+    def test_heroics_level_one_does_not_require_its_defense_only_condition(self) -> None:
+        result = self.resolve({"skill:422666624": 1})
+
+        self.assertEqual(result.stats.raw, Decimal("100"))
+        self.assertEqual(result.audit[0].outcome, "applied")
+
+    def test_elementless_weapon_never_gains_element_or_element_critical(self) -> None:
+        elementless = replace(
+            test_weapon(),
+            element_type=ElementType.NONE,
+            element=Decimal("0"),
+        )
+
+        result = self.resolve(
+            {"skill:-562534336": 3},
+            weapon=elementless,
+        )
+
+        self.assertEqual(result.stats.element, Decimal("0"))
+        self.assertEqual(result.stats.positive_element_critical_modifier, Decimal("1"))
+        self.assertEqual(result.audit[0].outcome, "inactive")
 
 
 if __name__ == "__main__":

@@ -120,7 +120,7 @@ Parse JSON integers normally and require every modifier value to be a non-empty 
 
 Add table-driven cases for missing/extra top-level fields, schema version other than `1`, target-version mismatch, invalid verification/source data, unknown modifier/operator/condition key, non-string/non-finite modifier values, empty clauses/modifiers, duplicate IDs/ranks, rank gaps, rank beyond `max_level`, catalog kind mismatch, unknown skill ID, and the same ID appearing in more than one of `skills` / `unsupported` / `non_damage`.
 
-Condition keys accepted by schema version 1 are: `monster_enraged`, `target_weak`, `target_wounded`, `sharpness`, `weapon_element`, `full_health`, `health_at_most_40_percent`, `red_health`, `maximum_stamina`, `virus_overcome`, `target_poisoned_or_paralyzed`, `hunter_statused`, `after_dodge`, `after_damage`, `after_bind_recovery`, `after_power_clash_or_offset`, `after_eating`, `wet_or_bubbled`, `burst_stage`, and `burst_active`. The combined target-status key prevents Foray from being applied twice when both statuses are represented.
+Condition keys accepted by schema version 1 are: `monster_enraged`, `target_weak`, `target_wounded`, `sharpness`, `weapon_element`, `full_health`, `health_at_most_35_percent`, `red_health`, `maximum_stamina`, `virus_overcome`, `target_poisoned_or_paralyzed`, `hunter_statused`, `after_dodge`, `after_damage`, `after_bind_recovery`, `after_power_clash_or_offset`, `after_perfect_guard`, `after_eating`, `wet`, `bubbled`, `latent_power_active`, `burst_stage`, and `burst_active`. The combined target-status key prevents Foray from being applied twice when both statuses are represented; separate wet/bubbled keys preserve Slicked Blade stacking.
 
 - [ ] **Step 6: Implement cross-validation and verify Task 2**
 

@@ -1,0 +1,3144 @@
+{
+  "schema_version": 1,
+  "game_version": "1.042.00.03",
+  "verification_status": "cross_checked",
+  "sources": [
+    {
+      "name": "MHDB Wilds fixed merged skill output",
+      "url": "https://github.com/LartTyler/mhdb-wilds-data/tree/c50a1eb892f4a1ad9bb35c147801658804be2cc2/output/merged",
+      "checked_at": "2026-11-04",
+      "supports": [
+        "skill_identity",
+        "skill_kind",
+        "rank_count",
+        "stated_rank_values"
+      ]
+    },
+    {
+      "name": "Monster Hunter Wilds official Steam news",
+      "url": "https://steamcommunity.com/app/2246340/allnews/?l=english",
+      "checked_at": "2026-11-04",
+      "supports": [
+        "checked_through_version_1.042.00.03"
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "id": "skill:-2096489472",
+      "kind": "weapon",
+      "max_level": 5,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "4"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "8"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "12"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "clauses": [
+            {
+              "conditions": [],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "16"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "clauses": [
+            {
+              "conditions": [],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "20"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:-1662120192",
+      "kind": "armor",
+      "max_level": 3,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "virus_overcome",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "3"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "virus_overcome",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "6"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "virus_overcome",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "10"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:-1607763456",
+      "kind": "weapon",
+      "max_level": 5,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [],
+              "modifiers": [
+                {
+                  "kind": "positive_critical_modifier",
+                  "value": "1.28"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [],
+              "modifiers": [
+                {
+                  "kind": "positive_critical_modifier",
+                  "value": "1.31"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [],
+              "modifiers": [
+                {
+                  "kind": "positive_critical_modifier",
+                  "value": "1.34"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "clauses": [
+            {
+              "conditions": [],
+              "modifiers": [
+                {
+                  "kind": "positive_critical_modifier",
+                  "value": "1.37"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "clauses": [
+            {
+              "conditions": [],
+              "modifiers": [
+                {
+                  "kind": "positive_critical_modifier",
+                  "value": "1.40"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:-1468066176",
+      "kind": "set",
+      "max_level": 2,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "after_eating",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "15"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "after_eating",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "30"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:-847539392",
+      "kind": "weapon",
+      "max_level": 3,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "wet",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "3"
+                }
+              ]
+            },
+            {
+              "conditions": [
+                {
+                  "key": "bubbled",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "7"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "wet",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "6"
+                }
+              ]
+            },
+            {
+              "conditions": [
+                {
+                  "key": "bubbled",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "14"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "wet",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "9"
+                }
+              ]
+            },
+            {
+              "conditions": [
+                {
+                  "key": "bubbled",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "21"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:-776946176",
+      "kind": "weapon",
+      "max_level": 3,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "weapon_element",
+                  "operator": "equals",
+                  "value": "dragon"
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "element_flat",
+                  "value": "40"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "weapon_element",
+                  "operator": "equals",
+                  "value": "dragon"
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "element_multiplier",
+                  "value": "1.10"
+                },
+                {
+                  "kind": "element_flat",
+                  "value": "50"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "weapon_element",
+                  "operator": "equals",
+                  "value": "dragon"
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "element_multiplier",
+                  "value": "1.20"
+                },
+                {
+                  "kind": "element_flat",
+                  "value": "60"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:-562534336",
+      "kind": "weapon",
+      "max_level": 3,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "weapon_element",
+                  "operator": "equals",
+                  "value": "fire"
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "element_flat",
+                  "value": "40"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "weapon_element",
+                  "operator": "equals",
+                  "value": "fire"
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "element_multiplier",
+                  "value": "1.10"
+                },
+                {
+                  "kind": "element_flat",
+                  "value": "50"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "weapon_element",
+                  "operator": "equals",
+                  "value": "fire"
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "element_multiplier",
+                  "value": "1.20"
+                },
+                {
+                  "kind": "element_flat",
+                  "value": "60"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:-397570464",
+      "kind": "armor",
+      "max_level": 5,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "target_weak",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "5"
+                }
+              ]
+            },
+            {
+              "conditions": [
+                {
+                  "key": "target_weak",
+                  "operator": "equals",
+                  "value": true
+                },
+                {
+                  "key": "target_wounded",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "3"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "target_weak",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "10"
+                }
+              ]
+            },
+            {
+              "conditions": [
+                {
+                  "key": "target_weak",
+                  "operator": "equals",
+                  "value": true
+                },
+                {
+                  "key": "target_wounded",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "5"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "target_weak",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "15"
+                }
+              ]
+            },
+            {
+              "conditions": [
+                {
+                  "key": "target_weak",
+                  "operator": "equals",
+                  "value": true
+                },
+                {
+                  "key": "target_wounded",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "10"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "target_weak",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "20"
+                }
+              ]
+            },
+            {
+              "conditions": [
+                {
+                  "key": "target_weak",
+                  "operator": "equals",
+                  "value": true
+                },
+                {
+                  "key": "target_wounded",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "15"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "target_weak",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "30"
+                }
+              ]
+            },
+            {
+              "conditions": [
+                {
+                  "key": "target_weak",
+                  "operator": "equals",
+                  "value": true
+                },
+                {
+                  "key": "target_wounded",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "20"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:-181127504",
+      "kind": "weapon",
+      "max_level": 3,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "after_perfect_guard",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_multiplier",
+                  "value": "1.05"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "after_perfect_guard",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_multiplier",
+                  "value": "1.10"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "after_perfect_guard",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_multiplier",
+                  "value": "1.15"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:-62248528",
+      "kind": "set",
+      "max_level": 2,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "after_power_clash_or_offset",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "10"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "after_power_clash_or_offset",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "25"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:1",
+      "kind": "weapon",
+      "max_level": 5,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "3"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "5"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "7"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "clauses": [
+            {
+              "conditions": [],
+              "modifiers": [
+                {
+                  "kind": "raw_multiplier",
+                  "value": "1.02"
+                },
+                {
+                  "kind": "raw_flat",
+                  "value": "8"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "clauses": [
+            {
+              "conditions": [],
+              "modifiers": [
+                {
+                  "kind": "raw_multiplier",
+                  "value": "1.04"
+                },
+                {
+                  "kind": "raw_flat",
+                  "value": "9"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:27684744",
+      "kind": "armor",
+      "max_level": 5,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "target_poisoned_or_paralyzed",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "6"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "target_poisoned_or_paralyzed",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "8"
+                },
+                {
+                  "kind": "affinity_points",
+                  "value": "5"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "target_poisoned_or_paralyzed",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "10"
+                },
+                {
+                  "kind": "affinity_points",
+                  "value": "10"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "target_poisoned_or_paralyzed",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "12"
+                },
+                {
+                  "kind": "affinity_points",
+                  "value": "15"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "target_poisoned_or_paralyzed",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "15"
+                },
+                {
+                  "kind": "affinity_points",
+                  "value": "20"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:280489184",
+      "kind": "armor",
+      "max_level": 3,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "after_damage",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "10"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "after_damage",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "15"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "after_damage",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "25"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:397306144",
+      "kind": "weapon",
+      "max_level": 3,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "sharpness",
+                  "operator": "at_most",
+                  "value": "yellow"
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_damage_multiplier",
+                  "value": "1.05"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "sharpness",
+                  "operator": "at_most",
+                  "value": "yellow"
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_damage_multiplier",
+                  "value": "1.10"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "sharpness",
+                  "operator": "at_most",
+                  "value": "green"
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_damage_multiplier",
+                  "value": "1.10"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:422666624",
+      "kind": "armor",
+      "max_level": 5,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [],
+              "modifiers": [
+                {
+                  "kind": "raw_multiplier",
+                  "value": "1"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "health_at_most_35_percent",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_multiplier",
+                  "value": "1.05"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "health_at_most_35_percent",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_multiplier",
+                  "value": "1.05"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "health_at_most_35_percent",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_multiplier",
+                  "value": "1.10"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "health_at_most_35_percent",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_multiplier",
+                  "value": "1.30"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:508916704",
+      "kind": "weapon",
+      "max_level": 3,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "weapon_element",
+                  "operator": "equals",
+                  "value": "water"
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "element_flat",
+                  "value": "40"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "weapon_element",
+                  "operator": "equals",
+                  "value": "water"
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "element_multiplier",
+                  "value": "1.10"
+                },
+                {
+                  "kind": "element_flat",
+                  "value": "50"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "weapon_element",
+                  "operator": "equals",
+                  "value": "water"
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "element_multiplier",
+                  "value": "1.20"
+                },
+                {
+                  "kind": "element_flat",
+                  "value": "60"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:632127488",
+      "kind": "armor",
+      "max_level": 3,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "maximum_stamina",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "10"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "maximum_stamina",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "20"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "maximum_stamina",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "30"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:918165056",
+      "kind": "set",
+      "max_level": 2,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "burst_active",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "8"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "burst_active",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "18"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:1174975744",
+      "kind": "armor",
+      "max_level": 5,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "after_dodge",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "10"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "after_dodge",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "15"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "after_dodge",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "20"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "after_dodge",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "25"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "after_dodge",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "30"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:1268070400",
+      "kind": "weapon",
+      "max_level": 3,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "weapon_element",
+                  "operator": "equals",
+                  "value": "ice"
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "element_flat",
+                  "value": "40"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "weapon_element",
+                  "operator": "equals",
+                  "value": "ice"
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "element_multiplier",
+                  "value": "1.10"
+                },
+                {
+                  "kind": "element_flat",
+                  "value": "50"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "weapon_element",
+                  "operator": "equals",
+                  "value": "ice"
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "element_multiplier",
+                  "value": "1.20"
+                },
+                {
+                  "kind": "element_flat",
+                  "value": "60"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:1359821952",
+      "kind": "armor",
+      "max_level": 5,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "red_health",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "5"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "red_health",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "10"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "red_health",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "15"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "red_health",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "20"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "red_health",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "25"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:1452140672",
+      "kind": "weapon",
+      "max_level": 3,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "weapon_element",
+                  "operator": "equals",
+                  "value": "thunder"
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "element_flat",
+                  "value": "40"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "weapon_element",
+                  "operator": "equals",
+                  "value": "thunder"
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "element_multiplier",
+                  "value": "1.10"
+                },
+                {
+                  "kind": "element_flat",
+                  "value": "50"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "weapon_element",
+                  "operator": "equals",
+                  "value": "thunder"
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "element_multiplier",
+                  "value": "1.20"
+                },
+                {
+                  "kind": "element_flat",
+                  "value": "60"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:1763191040",
+      "kind": "armor",
+      "max_level": 5,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "latent_power_active",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "10"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "latent_power_active",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "20"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "latent_power_active",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "30"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "latent_power_active",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "40"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "latent_power_active",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "affinity_points",
+                  "value": "50"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:1865909632",
+      "kind": "armor",
+      "max_level": 5,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "monster_enraged",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "4"
+                },
+                {
+                  "kind": "affinity_points",
+                  "value": "3"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "monster_enraged",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "8"
+                },
+                {
+                  "kind": "affinity_points",
+                  "value": "5"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "monster_enraged",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "12"
+                },
+                {
+                  "kind": "affinity_points",
+                  "value": "7"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "monster_enraged",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "16"
+                },
+                {
+                  "kind": "affinity_points",
+                  "value": "10"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "monster_enraged",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "20"
+                },
+                {
+                  "kind": "affinity_points",
+                  "value": "15"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "skill:2106877312",
+      "kind": "armor",
+      "max_level": 5,
+      "ranks": [
+        {
+          "level": 1,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "full_health",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "3"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "full_health",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "6"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "full_health",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "10"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "full_health",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "15"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "clauses": [
+            {
+              "conditions": [
+                {
+                  "key": "full_health",
+                  "operator": "equals",
+                  "value": true
+                }
+              ],
+              "modifiers": [
+                {
+                  "kind": "raw_flat",
+                  "value": "20"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "unsupported": [
+    {
+      "id": "skill:-2041451904",
+      "kind": "group",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:-1769550080",
+      "kind": "group",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:-1768553344",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:-1700743296",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:-1664678272",
+      "kind": "group",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:-1648695680",
+      "kind": "group",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:-1642078720",
+      "kind": "group",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:-1432692352",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:-1305836672",
+      "kind": "group",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:-964369920",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:-911441792",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:-856322816",
+      "kind": "armor",
+      "max_level": 5,
+      "reason": "additional_damage_not_modeled"
+    },
+    {
+      "id": "skill:-555494336",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:-418246240",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:-403054144",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:-215826112",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:-171796848",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:-3666104",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "additional_damage_not_modeled"
+    },
+    {
+      "id": "skill:2237",
+      "kind": "group",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:4554",
+      "kind": "group",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:5590",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:8694",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:11481",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:11709",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:13941",
+      "kind": "group",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:16835",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "additional_damage_not_modeled"
+    },
+    {
+      "id": "skill:16931",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:24531",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:28385",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:30201",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:30815",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:30992",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:31540",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:31998",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:313598432",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:451472896",
+      "kind": "group",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:539707072",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:565867136",
+      "kind": "armor",
+      "max_level": 5,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:576193792",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "additional_damage_not_modeled"
+    },
+    {
+      "id": "skill:583598144",
+      "kind": "group",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:722735744",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:741102208",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:1484575872",
+      "kind": "group",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:1487598336",
+      "kind": "group",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:1489568384",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:1594792704",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:1639440000",
+      "kind": "armor",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:1685697920",
+      "kind": "group",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:1968728576",
+      "kind": "group",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:1980404096",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "additional_damage_not_modeled"
+    },
+    {
+      "id": "skill:1998066176",
+      "kind": "group",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:2083363072",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:2104075392",
+      "kind": "set",
+      "max_level": 2,
+      "reason": "value_or_formula_unverified"
+    },
+    {
+      "id": "skill:2107855744",
+      "kind": "group",
+      "max_level": 1,
+      "reason": "value_or_formula_unverified"
+    }
+  ],
+  "non_damage": [
+    {
+      "id": "skill:-2125233152",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-2123993856",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-2022542848",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-1961297152",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-1961116288",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-1946345856",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-1863702144",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-1716324608",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-1689391744",
+      "kind": "armor",
+      "max_level": 5,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-1684613760",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-1674114176",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-1629629184",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-1507579776",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-1475134080",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-1304512512",
+      "kind": "armor",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-1237438336",
+      "kind": "weapon",
+      "max_level": 2,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-1235658624",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-1121468544",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-1073401280",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-895828480",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-893407296",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-857543744",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-844978880",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-692636288",
+      "kind": "armor",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-682586176",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-676967744",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-632440576",
+      "kind": "armor",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-609509888",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-596764096",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-593005376",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-568838336",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-481419552",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-420608864",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-411441344",
+      "kind": "armor",
+      "max_level": 2,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-315492576",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-307644128",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-283334048",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-257693696",
+      "kind": "armor",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-201445760",
+      "kind": "armor",
+      "max_level": 2,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-193031552",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-181774400",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-168922880",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:-160562336",
+      "kind": "weapon",
+      "max_level": 2,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:1826",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:3504",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:3813",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:7506",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:10503",
+      "kind": "armor",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:12877",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:25070",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:30554",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:30828",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:78208296",
+      "kind": "armor",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:144660544",
+      "kind": "armor",
+      "max_level": 5,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:166057120",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:169998480",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:192746944",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:353114912",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:383104832",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:402237312",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:424768352",
+      "kind": "armor",
+      "max_level": 2,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:469540352",
+      "kind": "armor",
+      "max_level": 5,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:522288832",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:552982656",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:595870656",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:634068352",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:652161472",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:673822976",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:686533440",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:691199232",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:705317568",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:742695104",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:802725120",
+      "kind": "weapon",
+      "max_level": 2,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:820385792",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:850626240",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:860517760",
+      "kind": "armor",
+      "max_level": 4,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:894530496",
+      "kind": "armor",
+      "max_level": 5,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:898284480",
+      "kind": "armor",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:919683456",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:1050520384",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:1077686656",
+      "kind": "armor",
+      "max_level": 7,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:1160639488",
+      "kind": "weapon",
+      "max_level": 5,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:1346775424",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:1389859584",
+      "kind": "weapon",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:1425756032",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:1444935552",
+      "kind": "weapon",
+      "max_level": 2,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:1459579264",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:1470960256",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:1472632704",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:1500129152",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:1522518528",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:1613139840",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:1711950720",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:1758661504",
+      "kind": "weapon",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:1845834112",
+      "kind": "armor",
+      "max_level": 1,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:1934955136",
+      "kind": "armor",
+      "max_level": 5,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:1940820864",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:1966172160",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:2045149568",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    },
+    {
+      "id": "skill:2143068800",
+      "kind": "armor",
+      "max_level": 3,
+      "reason": "outside_direct_dual_blades_combo_damage"
+    }
+  ]
+}
