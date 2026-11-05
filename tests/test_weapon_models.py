@@ -115,6 +115,9 @@ class WeaponDamageAdapterTests(unittest.TestCase):
         self.assertEqual(stats.sharpness, Sharpness.WHITE)
         self.assertEqual(stats.positive_critical_modifier, Decimal("1.25"))
         self.assertEqual(stats.negative_critical_modifier, Decimal("0.75"))
+        self.assertEqual(stats.raw_damage_modifier, Decimal("1"))
+        self.assertEqual(stats.element_damage_modifier, Decimal("1"))
+        self.assertEqual(stats.positive_element_critical_modifier, Decimal("1"))
         self.assertIs(stats.demon_dodge_buff, True)
 
     def test_preserves_combat_stats_validation(self) -> None:

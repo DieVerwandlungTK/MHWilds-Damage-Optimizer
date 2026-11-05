@@ -72,6 +72,9 @@ class CombatStats:
     negative_critical_modifier: Decimal
     sharpness: Sharpness
     demon_dodge_buff: bool
+    raw_damage_modifier: Decimal = Decimal("1")
+    element_damage_modifier: Decimal = Decimal("1")
+    positive_element_critical_modifier: Decimal = Decimal("1")
 
     def __post_init__(self) -> None:
         raw = _require_decimal(self.raw, "raw")
@@ -91,6 +94,12 @@ class CombatStats:
         )
         _require_positive(
             self.negative_critical_modifier, "negative_critical_modifier"
+        )
+        _require_positive(self.raw_damage_modifier, "raw_damage_modifier")
+        _require_positive(self.element_damage_modifier, "element_damage_modifier")
+        _require_positive(
+            self.positive_element_critical_modifier,
+            "positive_element_critical_modifier",
         )
         if not isinstance(self.sharpness, Sharpness):
             raise DamageInputError("sharpness must be a Sharpness value")
