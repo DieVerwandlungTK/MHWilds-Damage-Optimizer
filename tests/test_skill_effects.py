@@ -445,6 +445,13 @@ class SkillConditionResolutionTests(unittest.TestCase):
                 conditions=SkillConditionState({"target_weak": False}),
             )
 
+    def test_unused_explicit_automatic_condition_must_match_derived_value(self) -> None:
+        with self.assertRaisesRegex(SkillResolutionError, "target_weak"):
+            self.resolve(
+                (effect_clause(),),
+                conditions=SkillConditionState({"target_weak": False}),
+            )
+
     def test_conditions_within_clause_are_and_and_clauses_are_independent(self) -> None:
         clauses = (
             effect_clause(
@@ -541,6 +548,7 @@ class SkillAggregationTests(unittest.TestCase):
                     )
                 ),
             ),
+            kind=SkillKind.WEAPON,
         )
         fixture = resolution_fixture(
             definitions=(
@@ -606,6 +614,50 @@ class SkillAggregationTests(unittest.TestCase):
             tuple(item.outcome for item in result.audit),
             ("inactive", "applied"),
         )
+
+    def test_elemental_modifiers_are_inactive_for_elementless_weapon(self) -> None:
+        effect = skill_effect(
+            "skill:1",
+            (
+                effect_clause(
+                    modifiers=(
+                        EffectModifier(ModifierKind.ELEMENT_FLAT, Decimal("40")),
+                        EffectModifier(
+                            ModifierKind.ELEMENT_MULTIPLIER, Decimal("1.2")
+                        ),
+                        EffectModifier(
+                            ModifierKind.ELEMENT_DAMAGE_MULTIPLIER, Decimal("1.1")
+                        ),
+                        EffectModifier(
+                            ModifierKind.POSITIVE_ELEMENT_CRITICAL_MODIFIER,
+                            Decimal("1.25"),
+                        ),
+                    )
+                ),
+            ),
+        )
+        fixture = resolution_fixture(
+            definitions=(SkillDefinition("skill:1", SkillKind.ARMOR, 1),),
+            levels={"skill:1": 1},
+            effects=(effect,),
+        )
+        weapon = replace(
+            test_weapon(),
+            element_type=ElementType.NONE,
+            element=Decimal("0"),
+        )
+        context = replace(test_context(), weapon=weapon)
+
+        result = self.resolve_fixture(fixture, context=context)
+
+        self.assertEqual(result.stats.element, Decimal("0"))
+        self.assertEqual(result.stats.element_damage_modifier, Decimal("1"))
+        self.assertEqual(
+            result.stats.positive_element_critical_modifier,
+            Decimal("1"),
+        )
+        self.assertEqual(result.audit[0].outcome, "inactive")
+        self.assertEqual(result.audit[0].condition_evidence["weapon_element"], "none")
 
     def test_rejects_conflicting_active_critical_replacements(self) -> None:
         for kind in (
@@ -673,6 +725,17 @@ class SkillResolutionPolicyTests(unittest.TestCase):
         with self.assertRaisesRegex(SkillResolutionError, "version"):
             SkillAggregationTests().resolve_fixture(version_fixture)
 
+    def test_rejects_supplied_table_catalog_mismatch(self) -> None:
+        effect = skill_effect("skill:1", (effect_clause(),))
+        fixture = resolution_fixture(
+            definitions=(SkillDefinition("skill:1", SkillKind.ARMOR, 2),),
+            levels={"skill:1": 2},
+            effects=(effect,),
+        )
+
+        with self.assertRaisesRegex(SkillResolutionError, "skill:1.*max_level"):
+            SkillAggregationTests().resolve_fixture(fixture)
+
     def test_strict_and_non_strict_unsupported_and_unclassified_policy(self) -> None:
         unsupported = UnsupportedSkill(
             "skill:1", SkillKind.ARMOR, 1, "value_unverified"
@@ -700,6 +763,14 @@ class SkillResolutionPolicyTests(unittest.TestCase):
                 self.assertEqual(result.stats.raw, Decimal("100"))
                 self.assertTrue(result.warnings)
                 self.assertIs(result.ranking_eligible, False)
+
+    def test_supported_non_strict_result_is_not_ranking_eligible(self) -> None:
+        fixture = one_skill_fixture((effect_clause(),))
+
+        result = SkillAggregationTests().resolve_fixture(fixture, strict=False)
+
+        self.assertEqual(result.warnings, ())
+        self.assertIs(result.ranking_eligible, False)
 
     def test_non_damage_skills_are_audited_as_ignored(self) -> None:
         fixture = resolution_fixture(

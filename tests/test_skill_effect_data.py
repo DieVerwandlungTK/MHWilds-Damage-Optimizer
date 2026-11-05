@@ -196,6 +196,32 @@ class SkillEffectDataTests(unittest.TestCase):
         ] = "unknown_state"  # type: ignore[index]
         cases.append(("condition", unknown_condition, "key"))
 
+        string_boolean = valid_payload()
+        string_boolean["skills"][0]["ranks"][1]["clauses"][0]["conditions"][0][
+            "value"
+        ] = "true"  # type: ignore[index]
+        cases.append(("string boolean", string_boolean, "monster_enraged.*bool"))
+
+        invalid_sharpness = valid_payload()
+        sharpness_condition = invalid_sharpness["skills"][0]["ranks"][1][
+            "clauses"
+        ][0]["conditions"][0]  # type: ignore[index]
+        sharpness_condition.update({"key": "sharpness", "value": "purple"})
+        cases.append(("sharpness", invalid_sharpness, "sharpness.*value"))
+
+        invalid_element = valid_payload()
+        element_condition = invalid_element["skills"][0]["ranks"][1]["clauses"][
+            0
+        ]["conditions"][0]  # type: ignore[index]
+        element_condition.update({"key": "weapon_element", "value": "blast"})
+        cases.append(("element", invalid_element, "weapon_element.*value"))
+
+        invalid_at_most = valid_payload()
+        invalid_at_most["skills"][0]["ranks"][1]["clauses"][0]["conditions"][0][
+            "operator"
+        ] = "at_most"  # type: ignore[index]
+        cases.append(("at most", invalid_at_most, "at_most.*sharpness"))
+
         numeric_value = valid_payload()
         numeric_value["skills"][0]["ranks"][0]["clauses"][0]["modifiers"][0][
             "value"

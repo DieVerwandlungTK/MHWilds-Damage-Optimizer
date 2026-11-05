@@ -42,6 +42,12 @@ _AUTOMATIC_CONDITIONS = {
     "sharpness",
     "weapon_element",
 }
+_ELEMENT_MODIFIER_KINDS = {
+    ModifierKind.ELEMENT_FLAT,
+    ModifierKind.ELEMENT_MULTIPLIER,
+    ModifierKind.ELEMENT_DAMAGE_MULTIPLIER,
+    ModifierKind.POSITIVE_ELEMENT_CRITICAL_MODIFIER,
+}
 
 
 @dataclass(frozen=True)
@@ -165,6 +171,15 @@ def _actual_condition_value(
     return explicit[condition.key]
 
 
+def _validate_automatic_condition_overrides(
+    context: SkillResolutionContext,
+    automatic: Mapping[str, bool | str],
+) -> None:
+    for key in _AUTOMATIC_CONDITIONS & context.conditions.values.keys():
+        if context.conditions.values[key] != automatic[key]:
+            raise SkillResolutionError(f"explicit {key} conflicts with derived value")
+
+
 def _condition_matches(condition: EffectCondition, actual: bool | str) -> bool:
     if condition.operator is ConditionOperator.EQUALS:
         return actual == condition.value
@@ -233,6 +248,16 @@ def resolve_combat_stats(
             raise SkillResolutionError(
                 f"{skill_id} level {level} exceeds max_level {definition.max_level}"
             )
+        table_entry = (
+            resolved_table.skills.get(skill_id)
+            or resolved_table.unsupported.get(skill_id)
+            or resolved_table.non_damage.get(skill_id)
+        )
+        if table_entry is not None:
+            if table_entry.kind is not definition.kind:
+                raise SkillResolutionError(f"{skill_id} kind mismatch with catalog")
+            if table_entry.max_level != definition.max_level:
+                raise SkillResolutionError(f"{skill_id} max_level mismatch with catalog")
         if skill_id in resolved_table.non_damage:
             ignored.append(skill_id)
             continue
@@ -260,6 +285,7 @@ def resolve_combat_stats(
         demon_dodge_buff=context.demon_dodge_buff,
     )
     automatic = _automatic_values(context)
+    _validate_automatic_condition_overrides(context, automatic)
     raw_flat = Decimal("0")
     raw_multiplier = Decimal("1")
     element_flat = Decimal("0")
@@ -273,7 +299,9 @@ def resolve_combat_stats(
     for skill_id in supported_ids:
         effect = resolved_table.skills[skill_id]
         level = build.effective_skill_levels[skill_id]
-        rank = effect.ranks[level]
+        rank = effect.ranks.get(level)
+        if rank is None:
+            raise SkillResolutionError(f"{skill_id} does not define level {level}")
         for clause_index, clause in enumerate(rank.clauses):
             evidence: dict[str, bool | str] = {}
             matches = True
@@ -286,18 +314,28 @@ def resolve_combat_stats(
                 evidence[clause_condition.key] = actual
                 if not _condition_matches(clause_condition, actual):
                     matches = False
+            applicable_modifiers = clause.modifiers
+            if matches and context.weapon.element_type is ElementType.NONE:
+                applicable_modifiers = tuple(
+                    modifier
+                    for modifier in clause.modifiers
+                    if modifier.kind not in _ELEMENT_MODIFIER_KINDS
+                )
+                if len(applicable_modifiers) != len(clause.modifiers):
+                    evidence.setdefault("weapon_element", ElementType.NONE.value)
+            applies = matches and bool(applicable_modifiers)
             audit.append(
                 SkillEffectAudit(
                     skill_id=skill_id,
                     level=level,
                     clause_index=clause_index,
-                    outcome="applied" if matches else "inactive",
+                    outcome="applied" if applies else "inactive",
                     condition_evidence=evidence,
                 )
             )
-            if not matches:
+            if not applies:
                 continue
-            for modifier in clause.modifiers:
+            for modifier in applicable_modifiers:
                 if modifier.kind is ModifierKind.RAW_FLAT:
                     raw_flat += modifier.value
                 elif modifier.kind is ModifierKind.RAW_MULTIPLIER:
@@ -355,5 +393,5 @@ def resolve_combat_stats(
         ignored_skill_ids=tuple(ignored),
         warnings=tuple(warnings),
         verification_status=resolved_table.verification_status,
-        ranking_eligible=not skipped_incomplete,
+        ranking_eligible=strict and not skipped_incomplete,
     )

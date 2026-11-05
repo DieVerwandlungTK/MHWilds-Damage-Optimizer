@@ -12,6 +12,7 @@ from types import MappingProxyType
 from typing import Any
 
 from mhwilds_optimizer.combo_data import SourceReference, VerificationStatus
+from mhwilds_optimizer.damage_models import Sharpness
 from mhwilds_optimizer.equipment_models import EquipmentCatalog, SkillKind
 from mhwilds_optimizer.skill_effect_models import (
     CONDITION_KEYS,
@@ -26,6 +27,7 @@ from mhwilds_optimizer.skill_effect_models import (
     SkillRankEffect,
     UnsupportedSkill,
 )
+from mhwilds_optimizer.weapon_models import ElementType
 
 
 class SkillEffectDataError(ValueError):
@@ -136,16 +138,32 @@ def _condition(value: object, context: str) -> EffectCondition:
     key = _text(record.get("key"), f"{context}.key")
     if key not in CONDITION_KEYS:
         raise SkillEffectDataError(f"{context}.key has an unsupported value {key!r}")
+    operator = _enum(
+        ConditionOperator,
+        record.get("operator"),
+        f"{context}.operator",
+    )
+    if operator is ConditionOperator.AT_MOST and key != "sharpness":
+        raise SkillEffectDataError(f"{context}.operator at_most is only valid for sharpness")
     condition_value = record.get("value")
-    if not isinstance(condition_value, (bool, str)):
-        raise SkillEffectDataError(f"{context}.value must be bool or string")
+    if key == "sharpness":
+        valid_values = {member.value for member in Sharpness}
+        if not isinstance(condition_value, str) or condition_value not in valid_values:
+            raise SkillEffectDataError(f"{context}.sharpness value is invalid")
+    elif key == "weapon_element":
+        valid_values = {member.value for member in ElementType}
+        if not isinstance(condition_value, str) or condition_value not in valid_values:
+            raise SkillEffectDataError(f"{context}.weapon_element value is invalid")
+    elif key == "burst_stage":
+        if not isinstance(condition_value, str) or not condition_value:
+            raise SkillEffectDataError(
+                f"{context}.burst_stage must be a non-empty string"
+            )
+    elif type(condition_value) is not bool:
+        raise SkillEffectDataError(f"{context}.{key} value must be bool")
     return EffectCondition(
         key=key,
-        operator=_enum(
-            ConditionOperator,
-            record.get("operator"),
-            f"{context}.operator",
-        ),
+        operator=operator,
         value=condition_value,
     )
 
